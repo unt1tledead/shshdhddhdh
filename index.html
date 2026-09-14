@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#0d0d0d">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>GW Garant</title>
+    <link rel="preload" href="icons/8.svg" as="image" type="image/svg+xml">
+    <link rel="preload" href="/api/assets/no-avatar" as="image">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<!-- ══════════════════════ PIN SCREEN ══════════════════════ -->
+<div id="pin-screen" class="screen">
+    <div class="pin-container">
+
+        <div class="logo-wrap">
+            <img class="logo-svg" src="icons/8.svg" alt="GW Garant logo">
+        </div>
+
+        <div class="pin-card">
+            <h2 class="pin-title" id="pin-title">Введите PIN-код</h2>
+            <p class="pin-subtitle" id="pin-subtitle">Для доступа к вашему профилю введите 4-значный PIN-код, который вы задали ранее</p>
+            <p class="pin-warning" id="pin-warning">После трёх неверных попыток ввод будет<br>заблокирован на 1 час!</p>
+        </div>
+
+        <div class="numpad-card">
+            <div class="pin-dots">
+                <span class="dot" id="pin-d0"></span>
+                <span class="dot" id="pin-d1"></span>
+                <span class="dot" id="pin-d2"></span>
+                <span class="dot" id="pin-d3"></span>
+            </div>
+
+            <p class="pin-error hidden" id="pin-error"></p>
+            <p class="pin-lockout hidden" id="pin-lockout">
+                Заблокировано. Попробуйте через <span id="lockout-timer">60:00</span>
+            </p>
+
+            <div class="numpad">
+                <div class="numpad-row">
+                    <button class="numpad-btn" onclick="pinPress('1')">1</button>
+                    <button class="numpad-btn" onclick="pinPress('2')">2</button>
+                    <button class="numpad-btn" onclick="pinPress('3')">3</button>
+                </div>
+                <div class="numpad-row">
+                    <button class="numpad-btn" onclick="pinPress('4')">4</button>
+                    <button class="numpad-btn" onclick="pinPress('5')">5</button>
+                    <button class="numpad-btn" onclick="pinPress('6')">6</button>
+                </div>
+                <div class="numpad-row">
+                    <button class="numpad-btn" onclick="pinPress('7')">7</button>
+                    <button class="numpad-btn" onclick="pinPress('8')">8</button>
+                    <button class="numpad-btn" onclick="pinPress('9')">9</button>
+                </div>
+                <div class="numpad-row">
+                    <button class="numpad-btn numpad-empty"></button>
+                    <button class="numpad-btn" onclick="pinPress('0')">0</button>
+                    <button class="numpad-btn numpad-back" onclick="pinBackspace()">
+                        <svg width="29" height="29" viewBox="0 0 29 29" fill="none">
+                            <path d="M14.1401 18.9795L16.9107 16.2089L19.6813 18.9795L21.3901 17.2707L18.6195 14.5001L21.3901 11.7295L19.6812 10.0207L16.9107 12.7912L14.1401 10.0207L12.4313 11.7295L15.2018 14.5001L12.4312 17.2707L14.1401 18.9795Z" fill="white"/>
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M10.2648 4.8335C9.89404 4.8335 9.54377 5.00374 9.31469 5.2953L2.66886 13.7536C2.32459 14.1918 2.32459 14.8085 2.66886 15.2467L9.31469 23.705C9.54377 23.9966 9.89404 24.1668 10.2648 24.1668H22.9523C24.9544 24.1668 26.5773 22.5439 26.5773 20.5418V8.4585C26.5773 6.45646 24.9544 4.8335 22.9523 4.8335H10.2648ZM5.15569 14.5002L10.8521 7.25016H22.9523C23.6197 7.25016 24.1607 7.79115 24.1607 8.4585V20.5418C24.1607 21.2092 23.6197 21.7502 22.9523 21.7502H10.8521L5.15569 14.5002Z" fill="white"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ══════════════════════ APP SCREEN ══════════════════════ -->
+<div id="app-screen" class="screen hidden">
+
+    <!-- Fixed Header -->
+    <header class="app-header">
+        <img class="header-logo" src="icons/8.svg" alt="GW Garant">
+    </header>
+
+    <!-- Scrollable Content -->
+    <main class="app-main">
+
+        <!-- ─── SEARCH PAGE ─── -->
+        <div id="page-search" class="page active">
+
+            <!-- Search Card -->
+            <div class="card search-card">
+                <div class="search-card-info">
+                    <h3>Поиск</h3>
+                    <p>Найдите нужного пользователя<br>или услугу за секунды</p>
+                </div>
+
+                <div class="tabs">
+                    <button class="tab active" onclick="switchTab(this,'users')">
+                        <svg class="tab-icon" width="18" height="18" viewBox="0 0 21 20" fill="none"><path d="M6.58301 11.667C7.41373 11.667 8.17436 11.8446 8.84668 12.1641L8.13086 13.6689C7.68648 13.4578 7.17087 13.333 6.58301 13.333C4.29191 13.3332 2.83301 15.3161 2.83301 17.5H1.16699C1.16699 14.6841 3.10724 11.6672 6.58301 11.667ZM14.5 10.833C18.1751 10.833 20.333 13.779 20.333 16.667H18.667C18.667 14.555 17.1165 12.5 14.5 12.5C11.8835 12.5 10.333 14.555 10.333 16.667H8.66699C8.66699 13.779 10.825 10.833 14.5 10.833ZM6.58301 4.16699C8.42396 4.16699 9.91699 5.65905 9.91699 7.5C9.91699 9.34095 8.42396 10.833 6.58301 10.833C4.74221 10.8328 3.25 9.34084 3.25 7.5C3.25 5.65916 4.74221 4.16717 6.58301 4.16699ZM14.5 2.5C16.5711 2.5 18.25 4.17893 18.25 6.25C18.25 8.32107 16.5711 10 14.5 10C12.4289 10 10.75 8.32107 10.75 6.25C10.75 4.17893 12.4289 2.5 14.5 2.5ZM6.58301 5.83301C5.66268 5.83318 4.91699 6.57963 4.91699 7.5C4.91699 8.42037 5.66268 9.16682 6.58301 9.16699C7.50348 9.16699 8.25 8.42047 8.25 7.5C8.25 6.57953 7.50348 5.83301 6.58301 5.83301ZM14.5 4.16699C13.3494 4.16699 12.417 5.09941 12.417 6.25C12.417 7.40059 13.3494 8.33301 14.5 8.33301C15.6506 8.33301 16.583 7.40059 16.583 6.25C16.583 5.09941 15.6506 4.16699 14.5 4.16699Z" fill="currentColor"/></svg>
+                        Пользователи
+                    </button>
+                    <button class="tab" onclick="switchTab(this,'services')">
+                        <svg class="tab-icon" width="18" height="18" viewBox="0 0 21 20" fill="none"><path d="M10.25 0C15.7642 1.29308e-07 20.25 4.48583 20.25 10C20.25 15.5142 15.7642 20 10.25 20C4.73583 20 0.25 15.5142 0.25 10C0.25 4.48583 4.73583 0 10.25 0ZM10.25 1.66699C5.655 1.66699 1.91699 5.405 1.91699 10C1.91699 14.595 5.655 18.333 10.25 18.333C14.845 18.333 18.583 14.595 18.583 10C18.583 5.405 14.845 1.66699 10.25 1.66699ZM11.083 5.83301C12.4612 5.83301 13.5828 6.95482 13.583 8.33301H11.917C11.9168 7.87399 11.5429 7.5 11.083 7.5H9.41699C8.9571 7.5 8.58318 7.87399 8.58301 8.33301C8.58301 8.64801 8.80928 8.91513 9.12012 8.9668L11.6543 9.38965C12.7725 9.57556 13.583 10.5337 13.583 11.667C13.5828 13.0452 12.4612 14.167 11.083 14.167V15.833H9.41699V14.167C8.03877 14.167 6.91717 13.0452 6.91699 11.667H8.58301C8.58318 12.1268 8.9571 12.5 9.41699 12.5H11.083C11.5429 12.5 11.9168 12.1268 11.917 11.667C11.917 11.352 11.6907 11.0849 11.3799 11.0332L8.8457 10.6104C7.72748 10.4244 6.91699 9.46627 6.91699 8.33301C6.91717 6.95482 8.03877 5.83301 9.41699 5.83301V4.16699H11.083V5.83301Z" fill="currentColor"/></svg>
+                        Услуги
+                    </button>
+                </div>
+
+                <div class="search-input-wrap">
+                    <svg class="search-icon" width="17" height="17" viewBox="0 0 24 24" fill="none">
+                        <circle cx="11" cy="11" r="7" stroke="#666" stroke-width="2"/>
+                        <path d="M20 20l-3.5-3.5" stroke="#666" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <input type="text" id="search-input" class="search-input" placeholder="Поиск пользователей">
+                </div>
+
+                <button class="btn-dark w-full" onclick="doSearch()">Поиск</button>
+            </div>
+
+            <!-- Filter Bar -->
+            <div class="filter-bar">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
+                    <path d="M4 6h16M7 12h10M10 18h4" stroke="#aaa" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <span class="filter-label">Все</span>
+                <svg style="margin-left:auto" width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <path d="M6 9l6 6 6-6" stroke="#aaa" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </div>
+
+            <!-- Legend Popup -->
+            <div class="card legend-card" id="legend-card">
+                <div class="legend-header">
+                    <div>
+                        <h4>Обозначения</h4>
+                        <p>Небольшая памятка по обозначениям в карточке пользователя</p>
+                    </div>
+                    <button class="legend-close-btn" onclick="closeLegend(false)">✕</button>
+                </div>
+
+                <!-- annotated example -->
+                <div class="legend-demo">
+                    <div class="legend-annotations">
+                        <span class="ann ann-prefix">Префикс</span>
+                        <span class="ann ann-online">Статус сети</span>
+                        <span class="ann ann-deposit">Депозит</span>
+                        <span class="ann ann-rating">Рейтинг</span>
+                    </div>
+                    <div class="legend-arrows">
+                        <svg class="legend-arrow-svg" viewBox="0 0 320 30" preserveAspectRatio="none" aria-hidden="true">
+                            <path d="M28 2 L96 28"></path>
+                            <path d="M125 2 L194 28"></path>
+                            <path d="M215 2 L245 28"></path>
+                            <path d="M295 2 L286 28"></path>
+                        </svg>
+                    </div>
+                    <div class="user-item legend-example">
+                        <div class="avatar legend-ava"><img src="icons/8.svg" alt="GW"></div>
+                        <div class="user-info">
+                            <div class="name-row">
+                                <span class="badge badge-yellow">Арбитр</span>
+                                <span class="user-name">Nickname</span>
+                                <span class="online-dot"></span>
+                            </div>
+                            <span class="user-username">@username</span>
+                        </div>
+                        <div class="user-right">
+                            <div class="user-right-top">
+                                <span class="user-deposit">$4.8k+</span>
+                                <span class="user-rating">☆ 4.6</span>
+                            </div>
+                            <span class="user-deals">150 сделок</span>
+                        </div>
+                    </div>
+                    <div class="user-item legend-example" style="margin-top:6px">
+                        <div class="avatar legend-ava"><img src="icons/8.svg" alt="GW"></div>
+                        <div class="user-info">
+                            <div class="name-row">
+                                <span class="user-name">Nickname</span>
+                            </div>
+                            <span class="user-username">@username</span>
+                        </div>
+                        <div class="user-right">
+                            <div class="user-right-top">
+                                <span class="user-deposit">$2.9k+</span>
+                                <span class="user-rating">☆ 4.5</span>
+                            </div>
+                            <span class="user-deals">150 сделок</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn-yellow w-full" onclick="closeLegend(true)">Не показывать снова</button>
+            </div>
+
+            <!-- User List -->
+            <div id="user-list"></div>
+
+        </div>
+
+        <!-- ─── DEALS PAGE ─── -->
+        <div id="page-deals" class="page">
+            <div class="ref-page-head">
+                <h2 class="ref-page-title">Сделки</h2>
+            </div>
+
+            <div class="ref-segment ref-segment-3">
+                <button class="ref-seg-btn active" onclick="switchDealsTab(this,'all')">Все</button>
+                <button class="ref-seg-btn" onclick="switchDealsTab(this,'buys')">Покупки</button>
+                <button class="ref-seg-btn" onclick="switchDealsTab(this,'sells')">Продажи</button>
+            </div>
+
+            <div class="deal-control-grid">
+                <label class="deal-control">
+                    <span>Статус</span>
+                    <button type="button" class="deal-select-btn">
+                        <b id="deals-filter-label">Все</b>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+                    </button>
+                </label>
+                <label class="deal-control">
+                    <span>Сортировка</span>
+                    <button type="button" class="deal-select-btn">
+                        <b>По умолчанию</b>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+                    </button>
+                </label>
+            </div>
+
+            <div id="deals-list" class="ref-empty-card">
+                <div class="ref-empty-inner">
+                    <div class="ref-empty-title">У вас пока нет сделок</div>
+                    <div class="ref-empty-sub">Здесь будут отображаться все ваши активные и<br>завершённые сделки.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ─── CHAT PAGE ─── -->
+        <div id="page-chat" class="page">
+            <div id="chat-list-view" class="chat-view active">
+                <div class="chat-toolbar">
+                    <div class="chat-search-box">
+                        <svg width="25" height="25" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                        <span>Поиск</span>
+                    </div>
+                    <button class="chat-plus" onclick="openChatCreate()">+</button>
+                </div>
+
+                <button class="chat-row" type="button">
+                    <div class="chat-avatar">
+                        <svg width="27" height="27" viewBox="0 0 24 24" fill="none"><path d="M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm8 0a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM2.8 19c.3-3.2 2.2-5 5.2-5 3.1 0 4.9 1.8 5.2 5M11.8 19c.2-2.7 1.8-4.3 4.3-4.3 2.6 0 4.2 1.6 4.4 4.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                    </div>
+                    <div class="chat-row-main">
+                        <div class="chat-row-title">Чат проекта - Без коммерции</div>
+                        <div class="chat-row-preview"><b>Ra Jk :</b> Кто из поддержки в сети?</div>
+                    </div>
+                    <div class="chat-row-meta"><span>22:44</span><b>37</b></div>
+                </button>
+            </div>
+
+            <div id="chat-create-view" class="chat-view">
+                <div class="chat-create-hint">Выберите, кому хотели бы написать<br>или создайте новый чат</div>
+                <div class="chat-type-grid">
+                    <button class="chat-type-card active" id="chat-type-personal" onclick="selectChatType('personal')">
+                        <span class="chat-type-icon">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="7.5" r="3" stroke="currentColor" stroke-width="1.8"/><path d="M6 19c.3-4 2.4-6 6-6s5.7 2 6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                        </span>
+                        <span>Создать<br><b>личный чат</b></span>
+                    </button>
+                    <button class="chat-type-card" id="chat-type-group" onclick="selectChatType('group')">
+                        <span class="chat-type-icon">
+                            <svg width="30" height="30" viewBox="0 0 24 24" fill="none"><circle cx="9" cy="8" r="2.6" stroke="currentColor" stroke-width="1.8"/><circle cx="16" cy="7" r="2.4" stroke="currentColor" stroke-width="1.8"/><path d="M3.5 19c.3-3.5 2.1-5.2 5.5-5.2 3.3 0 5.1 1.7 5.4 5.2M13 14c.8-.7 1.8-1 3.1-1 2.7 0 4.2 1.6 4.4 4.7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                        </span>
+                        <span>Создать<br><b>групповой чат</b></span>
+                    </button>
+                </div>
+
+                <div id="group-name-wrap" class="chat-field-wrap hidden">
+                    <input id="group-chat-name" class="chat-create-input" type="text" placeholder="Название чата">
+                </div>
+                <div class="chat-search-users">
+                    <svg width="25" height="25" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                    <input type="text" placeholder="Поиск пользователей">
+                </div>
+                <div id="group-limit-hint" class="group-limit-hint hidden">Можно добавить не более 50 пользователей в час</div>
+                <button class="chat-create-submit" disabled>Создать чат</button>
+                <button class="chat-create-back" onclick="closeChatCreate()">Назад к чатам</button>
+            </div>
+        </div>
+
+        <!-- ─── HELP PAGE ─── -->
+        <div id="page-help" class="page">
+            <div class="page-title-row">
+                <h2 class="page-title">Поддержка</h2>
+            </div>
+            <div class="tabs tabs-2">
+                <button class="tab active" onclick="switchHelpTab(this,'admins')">Администрация</button>
+                <button class="tab" onclick="switchHelpTab(this,'arbiters')">Арбитры</button>
+            </div>
+            <div id="help-list">
+                <div class="empty-card">
+                    <p class="empty-title">Загрузка...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ─── NOTIFICATIONS PAGE ─── -->
+        <div id="page-notifs" class="page">
+            <div class="page-title-row">
+                <h2 class="page-title">Оповещения</h2>
+            </div>
+            <div class="tabs tabs-4">
+                <button class="tab tab-sm active" onclick="switchNotifsTab(this,'all')">Все <span class="notif-cnt" id="ncnt-all">0</span></button>
+                <button class="tab tab-sm" onclick="switchNotifsTab(this,'deals')">Сделки <span class="notif-cnt" id="ncnt-deals">0</span></button>
+                <button class="tab tab-sm" onclick="switchNotifsTab(this,'deposits')">Депозиты <span class="notif-cnt" id="ncnt-deposits">0</span></button>
+                <button class="tab tab-sm" onclick="switchNotifsTab(this,'system')">Системные <span class="notif-cnt" id="ncnt-system">0</span></button>
+            </div>
+            <div id="notifs-list">
+                <div class="empty-card">
+                    <p class="empty-title">Уведомлений нет</p>
+                    <p class="empty-sub">Уведомления будут появляться здесь</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ─── PROFILE PAGE ─── -->
+        <div id="page-profile" class="page">
+            <!-- Cover -->
+            <div class="profile-cover">
+                <span class="profile-cover-char" id="profile-cover-char">?</span>
+                <div class="profile-avatar-wrap">
+                    <div class="profile-avatar" id="profile-avatar"><span>?</span></div>
+                </div>
+            </div>
+
+            <!-- Name + buttons combined card -->
+            <div class="card profile-name-card profile-top-card">
+                <div class="profile-name-row">
+                    <div>
+                        <div class="profile-display-name" id="profile-name">...</div>
+                        <div class="profile-username" id="profile-username">@...</div>
+                        <div class="profile-tgid" id="profile-tgid"></div>
+                    </div>
+                    <span class="badge badge-yellow" id="profile-status-badge">Пользователь</span>
+                </div>
+                <div class="profile-desc-wrap">
+                    <div class="profile-desc-title">Описание</div>
+                    <div class="profile-desc-text" id="profile-desc">Нет описания</div>
+                </div>
+                <div class="profile-btn-grid" style="margin-top:14px">
+                    <button class="btn-yellow btn-span-2" onclick="openDepositMenu()">Депозит</button>
+                    <button class="btn-dark" onclick="openSettingsPage()">Настройки</button>
+                    <button class="btn-dark" onclick="showForumsInDev()">Добавить форумы</button>
+                </div>
+            </div>
+
+            <!-- Stats grid -->
+            <div class="profile-stats-grid">
+                <div class="card stat-card">
+                    <div class="stat-value" id="profile-rating"><svg class="rating-star" width="15" height="14" viewBox="0 0 19 18" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M9.75 1.5C10.0495 1.5 10.3204 1.67824 10.4388 1.95335L12.2906 6.25322L16.9522 6.68558C17.2505 6.71324 17.5037 6.91573 17.5962 7.20061C17.6888 7.48549 17.603 7.79813 17.3779 7.99583L13.8607 11.0856L14.89 15.6527C14.9559 15.9449 14.8416 16.2483 14.5992 16.4244C14.3569 16.6005 14.033 16.6154 13.7755 16.4625L9.75 14.0723L5.72453 16.4625C5.46697 16.6154 5.14311 16.6005 4.90077 16.4244C4.65844 16.2483 4.5441 15.9449 4.60996 15.6527L5.63929 11.0856L2.12209 7.99583C1.89705 7.79813 1.81122 7.48549 1.90378 7.20061C1.99635 6.91573 2.24955 6.71324 2.54781 6.68558L7.20944 6.25322L9.06116 1.95335C9.17964 1.67824 9.45046 1.5 9.75 1.5ZM9.75 4.1462L8.41098 7.25554C8.3024 7.50767 8.06475 7.68033 7.7914 7.70569L4.42047 8.01833L6.96385 10.2527C7.17008 10.4338 7.26086 10.7132 7.2005 10.981L6.45617 14.2836L9.36708 12.5551C9.60312 12.415 9.89688 12.415 10.1329 12.5551L13.0438 14.2836L12.2995 10.981C12.2391 10.7132 12.3299 10.4338 12.5362 10.2527L15.0795 8.01833L11.7086 7.70569C11.4353 7.68033 11.1976 7.50767 11.089 7.25554L9.75 4.1462Z" fill="#FEE600"/></svg> 0</div>
+                    <div class="stat-label">Рейтинг</div>
+                </div>
+                <div class="card stat-card stat-card-deposit">
+                    <div class="stat-value" id="profile-deposit">0</div>
+                    <div class="stat-label">Депозит <svg width="10" height="10" viewBox="0 0 17 16" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M11.6928 8.23643L7.02612 12.9031L6.08331 11.9603L10.2786 7.76502L6.08331 3.56976L7.02612 2.62695L11.6928 7.29362C11.9531 7.55397 11.9531 7.97608 11.6928 8.23643Z" fill="#878787"/></svg></div>
+                </div>
+                <div class="card stat-card stat-card-plain">
+                    <div class="stat-value" id="profile-deals">0</div>
+                    <div class="stat-label">Сделок</div>
+                </div>
+                <div class="card stat-card stat-card-plain">
+                    <div class="stat-value" id="profile-sum">$0</div>
+                    <div class="stat-label">Сумма сделок</div>
+                </div>
+            </div>
+
+            <!-- Tabs: reviews -->
+            <div class="tabs tabs-1">
+                <button class="tab active" onclick="switchProfileTab(this,'reviews')">Отзывы <span class="notif-cnt" id="profile-rev-cnt">0</span></button>
+            </div>
+            <div id="profile-content">
+                <div class="empty-card">
+                    <p class="empty-title">Нет отзывов</p>
+                    <p class="empty-sub">Отзывы появятся после завершения сделок</p>
+                </div>
+            </div>
+            <!-- Admin panel button (only shown for admins) -->
+            <div id="profile-admin-btn-wrap" style="padding:14px;display:none">
+                <button class="btn-primary" style="width:100%" onclick="openAdminPanel()">🛠 Панель администратора</button>
+            </div>
+        </div>
+
+            <!-- ─── DEPOSIT MENU PAGE ─── -->
+            <div id="page-deposit-menu" class="page">
+                <button class="subpage-back-btn" onclick="goBackToProfile()">
+                    <svg width="17" height="16" viewBox="0 0 17 16" fill="none">
+                        <path d="M16.0834 7.99984H0.916748M0.916748 7.99984L7.58342 14.6665M0.916748 7.99984L7.58342 1.33317" stroke="currentColor" stroke-width="1.67" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <div class="deposit-menu-list">
+                    <div class="card deposit-menu-item" onclick="openDepositIn()">
+                        <div class="deposit-menu-item-text">
+                            <div class="deposit-menu-item-title">Внести депозит</div>
+                            <div class="deposit-menu-item-sub">Пополните баланс через выбранную сеть и валюту</div>
+                        </div>
+                        <svg class="deposit-menu-item-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                            <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <div class="card deposit-menu-item" onclick="openDepositOut()">
+                        <div class="deposit-menu-item-text">
+                            <div class="deposit-menu-item-title">Вывести депозит</div>
+                            <div class="deposit-menu-item-sub">Запросите вывод средств</div>
+                        </div>
+                        <svg class="deposit-menu-item-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                            <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ─── DEPOSIT IN PAGE ─── -->
+            <div id="page-deposit-in" class="page">
+                <button class="subpage-back-btn" onclick="openSubpage('deposit-menu')">
+                    <svg width="17" height="16" viewBox="0 0 17 16" fill="none">
+                        <path d="M16.0834 7.99984H0.916748M0.916748 7.99984L7.58342 14.6665M0.916748 7.99984L7.58342 1.33317" stroke="currentColor" stroke-width="1.67" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <h2 class="deposit-page-title">Пополнение депозита</h2>
+                <div class="card deposit-select-card">
+                    <div class="deposit-select-label">Сеть</div>
+                    <div class="custom-select-wrap" id="network-select-wrap">
+                        <div class="custom-select-trigger" id="network-select-trigger" onclick="toggleNetworkDropdown()">
+                            <span id="selected-network-label"></span>
+                            <svg class="custom-select-caret" id="network-caret" width="18" height="18" viewBox="0 0 24 24" fill="none">
+                                <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <div class="custom-select-dropdown hidden" id="network-dropdown"></div>
+                    </div>
+                </div>
+                <div id="deposit-in-details" class="hidden"></div>
+            </div>
+
+            <!-- ─── DEPOSIT OUT PAGE ─── -->
+            <div id="page-deposit-out" class="page">
+                <button class="subpage-back-btn" onclick="openSubpage('deposit-menu')">
+                    <svg width="17" height="16" viewBox="0 0 17 16" fill="none">
+                        <path d="M16.0834 7.99984H0.916748M0.916748 7.99984L7.58342 14.6665M0.916748 7.99984L7.58342 1.33317" stroke="currentColor" stroke-width="1.67" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <div class="card deposit-out-header-card">
+                    <div class="deposit-out-title">Вывод средств</div>
+                    <div class="deposit-out-balance-row">
+                        <span class="deposit-out-balance-label">Доступный баланс:</span>
+                        <span class="deposit-out-balance-val" id="withdraw-balance">0.00 USDT</span>
+                    </div>
+                </div>
+
+                <div class="card deposit-out-form-card">
+                    <div class="form-group">
+                        <label class="form-label">Сеть</label>
+                        <select class="form-select" id="withdraw-network">
+                            <option value="">— Выберите сеть —</option>
+                            <option value="TRC20">USDT TRC20 (TRON)</option>
+                            <option value="ERC20">USDT ERC20 (Ethereum)</option>
+                            <option value="BEP20">USDT BEP20 (BSC)</option>
+                            <option value="SOL">USDT SOL (Solana)</option>
+                            <option value="Bitcoin">Bitcoin (BTC)</option>
+                            <option value="Litecoin">Litecoin (LTC)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Адрес кошелька</label>
+                        <input class="form-input" id="withdraw-address" type="text" placeholder="Введите адрес получателя" autocomplete="off" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Сумма (USDT)</label>
+                        <input class="form-input" id="withdraw-amount" type="number" min="1" step="0.01" placeholder="0.00" />
+                    </div>
+                    <button class="btn-primary withdraw-submit-btn" id="withdraw-submit-btn" onclick="submitWithdrawal()">Вывести</button>
+                </div>
+
+                <div class="card deposit-out-history-card">
+                    <div class="deposit-out-history-title">История заявок</div>
+                    <div id="withdraw-history-list">
+                        <p class="withdraw-empty">Загрузка…</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ─── SETTINGS PAGE ─── -->
+            <div id="page-settings" class="page">
+                <button class="subpage-back-btn" onclick="goBackToProfile()">
+                    <svg width="17" height="16" viewBox="0 0 17 16" fill="none">
+                        <path d="M16.0834 7.99984H0.916748M0.916748 7.99984L7.58342 14.6665M0.916748 7.99984L7.58342 1.33317" stroke="currentColor" stroke-width="1.67" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <h2 class="settings-title">Настройки профиля</h2>
+
+                <div class="card settings-card">
+                    <div class="settings-row">
+                        <h3 class="settings-item-title">Скрыть профиль</h3>
+                        <label class="settings-switch">
+                            <input id="settings-hide-profile" type="checkbox" onchange="toggleProfileHidden(this.checked)">
+                            <span class="settings-slider"></span>
+                        </label>
+                    </div>
+                    <p class="settings-item-sub">Ваш профиль перестанет отображаться в поиске и списках пользователей. Ссылки и переписки останутся активными.</p>
+                </div>
+
+                <div class="card settings-card">
+                    <h3 class="settings-item-title">Сменить PIN-код</h3>
+                    <button class="btn-dark settings-action-btn" onclick="startPinChange()">Перейти к смене</button>
+                </div>
+            </div>
+
+            <!-- ─── VIEWED USER PROFILE PAGE ─── -->
+            <div id="page-user-profile" class="page">
+                <button class="subpage-back-btn" onclick="goBackToSearch()">
+                    <svg width="17" height="16" viewBox="0 0 17 16" fill="none">
+                        <path d="M16.0834 7.99984H0.916748M0.916748 7.99984L7.58342 14.6665M0.916748 7.99984L7.58342 1.33317" stroke="currentColor" stroke-width="1.67" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+
+                <div class="profile-cover">
+                    <span class="profile-cover-char" id="view-profile-cover-char">?</span>
+                    <div class="profile-avatar-wrap">
+                        <div class="profile-avatar" id="view-profile-avatar"><span>?</span></div>
+                    </div>
+                </div>
+
+                <div class="card profile-name-card">
+                    <div class="profile-name-row">
+                        <div>
+                            <div class="profile-display-name" id="view-profile-name">...</div>
+                            <div class="profile-username" id="view-profile-username">@...</div>
+                            <div class="profile-tgid" id="view-profile-tgid"></div>
+                        </div>
+                        <span class="badge badge-yellow" id="view-profile-status">Пользователь</span>
+                    </div>
+                    <div class="profile-desc-wrap">
+                        <div class="profile-desc-title">Описание</div>
+                        <div class="profile-desc-text" id="view-profile-desc">Нет описания</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="profile-btn-grid">
+                        <button class="btn-yellow btn-span-2" onclick="openDealPage()">Открыть сделку</button>
+                        <button class="btn-dark" onclick="openViewedUserTelegram()">Телеграм</button>
+                        <button class="btn-dark" onclick="showForumsInDev()">Форумы</button>
+                    </div>
+                </div>
+
+                <div class="profile-stats-grid">
+                    <div class="card stat-card">
+                        <div class="stat-value" id="view-profile-rating"><svg class="rating-star" width="15" height="14" viewBox="0 0 19 18" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M9.75 1.5C10.0495 1.5 10.3204 1.67824 10.4388 1.95335L12.2906 6.25322L16.9522 6.68558C17.2505 6.71324 17.5037 6.91573 17.5962 7.20061C17.6888 7.48549 17.603 7.79813 17.3779 7.99583L13.8607 11.0856L14.89 15.6527C14.9559 15.9449 14.8416 16.2483 14.5992 16.4244C14.3569 16.6005 14.033 16.6154 13.7755 16.4625L9.75 14.0723L5.72453 16.4625C5.46697 16.6154 5.14311 16.6005 4.90077 16.4244C4.65844 16.2483 4.5441 15.9449 4.60996 15.6527L5.63929 11.0856L2.12209 7.99583C1.89705 7.79813 1.81122 7.48549 1.90378 7.20061C1.99635 6.91573 2.24955 6.71324 2.54781 6.68558L7.20944 6.25322L9.06116 1.95335C9.17964 1.67824 9.45046 1.5 9.75 1.5ZM9.75 4.1462L8.41098 7.25554C8.3024 7.50767 8.06475 7.68033 7.7914 7.70569L4.42047 8.01833L6.96385 10.2527C7.17008 10.4338 7.26086 10.7132 7.2005 10.981L6.45617 14.2836L9.36708 12.5551C9.60312 12.415 9.89688 12.415 10.1329 12.5551L13.0438 14.2836L12.2995 10.981C12.2391 10.7132 12.3299 10.4338 12.5362 10.2527L15.0795 8.01833L11.7086 7.70569C11.4353 7.68033 11.1976 7.50767 11.089 7.25554L9.75 4.1462Z" fill="#FEE600"/></svg> 0</div>
+                        <div class="stat-label">Рейтинг</div>
+                    </div>
+                    <div class="card stat-card stat-card-deposit">
+                        <div class="stat-value" id="view-profile-deposit">0</div>
+                        <div class="stat-label">Депозит <svg width="10" height="10" viewBox="0 0 17 16" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M11.6928 8.23643L7.02612 12.9031L6.08331 11.9603L10.2786 7.76502L6.08331 3.56976L7.02612 2.62695L11.6928 7.29362C11.9531 7.55397 11.9531 7.97608 11.6928 8.23643Z" fill="#878787"/></svg></div>
+                    </div>
+                    <div class="card stat-card stat-card-plain">
+                        <div class="stat-value" id="view-profile-deals">0</div>
+                        <div class="stat-label">Сделок</div>
+                    </div>
+                    <div class="card stat-card stat-card-plain">
+                        <div class="stat-value" id="view-profile-sum">$0</div>
+                        <div class="stat-label">Сумма сделок</div>
+                    </div>
+                </div>
+
+                <div class="tabs tabs-2">
+                    <button class="tab active" onclick="switchViewedProfileTab(this,'services')">Услуги <span class="notif-cnt" id="view-profile-services-cnt">0</span></button>
+                    <button class="tab" onclick="switchViewedProfileTab(this,'reviews')">Отзывы <span class="notif-cnt" id="view-profile-rev-cnt">0</span></button>
+                </div>
+
+                <div id="view-profile-content">
+                    <div class="empty-card">
+                        <p class="empty-title">Услуги отсутствуют</p>
+                        <p class="empty-sub">Пользователь пока не добавил услуги</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ─── DEAL CREATE PAGE ─── -->
+            <div id="page-deal-create" class="page">
+                <button class="subpage-back-btn" onclick="goBackFromDealCreate()">
+                    <svg width="17" height="16" viewBox="0 0 17 16" fill="none">
+                        <path d="M16.0834 7.99984H0.916748M0.916748 7.99984L7.58342 14.6665M0.916748 7.99984L7.58342 1.33317" stroke="currentColor" stroke-width="1.67" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+
+                <div class="card deal-create-head-card">
+                    <div class="deal-create-avatars">
+                        <img src="/api/assets/no-avatar-small" alt="my avatar" class="deal-create-avatar-img" id="deal-my-avatar">
+                        <img src="/api/assets/no-avatar-small" alt="user avatar" class="deal-create-avatar-img deal-create-avatar-second" id="deal-user-avatar">
+                    </div>
+                    <div class="deal-create-head-title">Создание сделки с</div>
+                    <div class="deal-create-head-username" id="deal-target-username">@user</div>
+                </div>
+
+                <div class="card deal-create-form-card">
+                    <div class="deal-create-block">
+                        <h3 class="deal-create-label">Название сделки</h3>
+                        <input id="deal-title-input" class="deal-create-input" type="text" maxlength="52" placeholder="Введите название сделки" oninput="updateDealCreateCounters()">
+                        <div class="deal-create-counter" id="deal-title-counter">0/52</div>
+                    </div>
+
+                    <div class="deal-create-divider"></div>
+
+                    <div class="deal-create-block">
+                        <h3 class="deal-create-label">Выберите валюту и сумму оплаты</h3>
+                        <select id="deal-currency" class="deal-create-input deal-create-select" onchange="onDealCurrencyChange()">
+                            <option value="TRX" selected>TRX</option>
+                            <option value="BTC">BTC</option>
+                            <option value="ETH">ETH</option>
+                            <option value="USDT">USDT</option>
+                            <option value="LTC">LTC</option>
+                            <option value="BNB">BNB</option>
+                        </select>
+                        <div class="deal-create-amount-wrap">
+                            <input id="deal-amount" class="deal-create-input deal-create-amount" type="number" min="0" step="0.0001" value="0">
+                            <span class="deal-create-amount-currency" id="deal-amount-currency">BTC</span>
+                        </div>
+                    </div>
+
+                    <div class="deal-create-divider"></div>
+
+                    <div class="deal-create-block">
+                        <h3 class="deal-create-label">Условия сделки</h3>
+                        <textarea id="deal-terms-input" class="deal-create-textarea" maxlength="6400" placeholder="Введите условия сделки" oninput="updateDealCreateCounters()"></textarea>
+                        <div class="deal-create-counter" id="deal-terms-counter">0/6400</div>
+                    </div>
+
+                    <div class="deal-create-divider"></div>
+
+                    <div class="deal-create-block">
+                        <h3 class="deal-create-label">Вы выступаете в сделке как</h3>
+                        <select id="deal-role" class="deal-create-input deal-create-select">
+                            <option value="buyer">Покупатель</option>
+                            <option value="seller">Продавец</option>
+                        </select>
+                    </div>
+
+                    <div class="deal-create-divider"></div>
+
+                    <div class="deal-create-actions">
+                        <button class="btn-yellow" onclick="submitDealCreate()">Заключить</button>
+                        <button class="btn-dark" onclick="goBackFromDealCreate()">Отменить</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ─── DEAL VIEW PAGE ─── -->
+            <div id="page-deal-view" class="page">
+                <button class="subpage-back-btn" onclick="goBackFromDealView()">
+                    <svg width="17" height="16" viewBox="0 0 17 16" fill="none">
+                        <path d="M16.0834 7.99984H0.916748M0.916748 7.99984L7.58342 14.6665M0.916748 7.99984L7.58342 1.33317" stroke="currentColor" stroke-width="1.67" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+
+                <!-- Payment mode (js-injected) -->
+                <div id="deal-payment-mode" class="hidden"></div>
+
+                <!-- Details mode -->
+                <div id="deal-details-mode">
+
+                <!-- Deal Header Card -->
+                <div class="card deal-view-header-card">
+                    <div class="deal-view-id">Сделка #<span id="deal-view-id">65009</span></div>
+                    <div class="deal-view-username" id="deal-view-username">Название сделки</div>
+                    <div class="deal-view-date" id="deal-view-date">18.03.2026</div>
+                </div>
+
+                <!-- Deal Amount Card -->
+                <div class="card deal-view-amount-card">
+                    <div class="deal-view-amount-label">Сумма:</div>
+                    <div class="deal-view-amount-main" id="deal-view-amount">100.00 TRX</div>
+                    <div class="deal-view-amount-usd" id="deal-view-amount-usd">≈30.24$</div>
+                    <div class="deal-view-complete-badge hidden" id="deal-view-complete-badge">
+                        <svg width="14" height="14" viewBox="0 0 14 15" fill="none" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M6.99999 1.66699C3.77833 1.66699 1.16666 4.27866 1.16666 7.50033C1.16666 10.722 3.77833 13.3337 6.99999 13.3337C10.2217 13.3337 12.8333 10.722 12.8333 7.50033C12.8333 4.27866 10.2217 1.66699 6.99999 1.66699ZM6.82911 9.37111L9.74577 6.45444L8.92082 5.62949L6.41663 8.13367L4.78744 6.50449L3.96248 7.32944L6.00415 9.37111C6.23196 9.59892 6.6013 9.59892 6.82911 9.37111Z" fill="#3DB43A"/></svg>
+                        <span id="deal-view-complete-badge-text">Сделка завершена</span>
+                    </div>
+                </div>
+
+                <!-- Deal Status Cards -->
+                <div class="card deal-view-status-card">
+                    <div class="deal-view-status-item">
+                        <div class="deal-view-status-icon">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M10.8334 9.65515V5.83366H9.16675V9.65515C9.16675 10.0972 9.34234 10.5211 9.6549 10.8337L12.3275 13.5062L13.506 12.3277L10.8334 9.65515Z" fill="#878787"/>
+                              <path fill-rule="evenodd" clip-rule="evenodd" d="M10.0001 18.3337C5.39771 18.3337 1.66675 14.6027 1.66675 10.0003C1.66675 5.39795 5.39771 1.66699 10.0001 1.66699C14.6025 1.66699 18.3334 5.39795 18.3334 10.0003C18.3334 14.6027 14.6025 18.3337 10.0001 18.3337ZM10.0001 16.667C13.682 16.667 16.6667 13.6822 16.6667 10.0003C16.6667 6.31843 13.682 3.33366 10.0001 3.33366C6.31818 3.33366 3.33341 6.31843 3.33341 10.0003C3.33341 13.6822 6.31818 16.667 10.0001 16.667Z" fill="#878787"/>
+                            </svg>
+                        </div>
+                        <div class="deal-view-status-info">
+                            <div class="deal-view-status-label">Статус сделки:</div>
+                            <div class="deal-view-status-value" id="deal-view-deal-status">Подтверждена продавцом</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card deal-view-status-card">
+                    <div class="deal-view-status-item">
+                        <div class="deal-view-status-icon">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M18.3334 2.50033V12.5003C18.3334 12.7213 18.2456 12.9333 18.0893 13.0896C17.9331 13.2459 17.7211 13.3337 17.5001 13.3337H11.6667V11.667H15.0712C15.0251 11.5367 15.0001 11.3964 15.0001 11.2503C15.0001 10.56 15.5597 10.0003 16.2501 10.0003C16.3962 10.0003 16.5364 10.0254 16.6667 10.0714V4.92922C16.5364 4.97528 16.3962 5.00033 16.2501 5.00033C15.5597 5.00033 15.0001 4.44068 15.0001 3.75033C15.0001 3.60423 15.0251 3.46398 15.0712 3.33366H4.92895C4.97502 3.46398 5.00008 3.60423 5.00008 3.75033C5.00008 4.44068 4.44044 5.00033 3.75008 5.00033C3.60398 5.00033 3.46374 4.97528 3.33341 4.92922L3.33341 10.0003H1.66675V2.50033C1.66675 2.04009 2.03984 1.66699 2.50008 1.66699H17.5001C17.9603 1.66699 18.3334 2.04009 18.3334 2.50033Z" fill="#878787"/>
+                              <path d="M5.83342 10.0003C4.4527 10.0003 3.33341 11.1196 3.33341 12.5003C3.33341 13.881 4.4527 15.0003 5.83342 15.0003H7.50008C7.96032 15.0003 8.33342 15.3734 8.33342 15.8337C8.33342 16.2939 7.96032 16.667 7.50008 16.667H5.83342C5.37318 16.667 5.00008 16.2939 5.00008 15.8337H3.33341C3.33341 17.2144 4.4527 18.3337 5.83342 18.3337V19.167H7.50008V18.3337C8.88079 18.3337 10.0001 17.2144 10.0001 15.8337C10.0001 14.4529 8.88079 13.3337 7.50008 13.3337H5.83342C5.37318 13.3337 5.00008 12.9606 5.00008 12.5003C5.00008 12.0401 5.37318 11.667 5.83342 11.667H7.50008C7.96032 11.667 8.33342 12.0401 8.33342 12.5003H10.0001C10.0001 11.1196 8.88079 10.0003 7.50008 10.0003V9.16699H5.83342V10.0003Z" fill="#878787"/>
+                            </svg>
+                        </div>
+                        <div class="deal-view-status-info">
+                            <div class="deal-view-status-label">Статус оплаты:</div>
+                            <div class="deal-view-status-value" id="deal-view-payment-status">Ожидает оплаты покупателем</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Button -->
+                <button class="btn-yellow deal-view-action-btn" id="deal-view-action-btn" onclick="handleDealAction()">Оплатить</button>
+
+                <!-- Seller Info -->
+                <div class="card deal-view-user-card deal-view-seller-card">
+                    <div class="deal-view-user-row">
+                        <div id="deal-view-seller-avatar" class="deal-view-user-avatar-sq">?</div>
+                        <div class="deal-view-user-info">
+                            <div class="deal-view-user-name" id="deal-view-seller-name">Продавец</div>
+                            <div class="deal-view-user-username" id="deal-view-seller-username">@user</div>
+                        </div>
+                    </div>
+                    <div class="deal-view-user-stats">
+                        <div class="deal-view-user-stat">
+                            <div class="deal-view-stat-value">
+                                <svg width="14" height="13" viewBox="0 0 19 18" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M9.75 1.5C10.0495 1.5 10.3204 1.67824 10.4388 1.95335L12.2906 6.25322L16.9522 6.68558C17.2505 6.71324 17.5037 6.91573 17.5962 7.20061C17.6888 7.48549 17.603 7.79813 17.3779 7.99583L13.8607 11.0856L14.89 15.6527C14.9559 15.9449 14.8416 16.2483 14.5992 16.4244C14.3569 16.6005 14.033 16.6154 13.7755 16.4625L9.75 14.0723L5.72453 16.4625C5.46697 16.6154 5.14311 16.6005 4.90077 16.4244C4.65844 16.2483 4.5441 15.9449 4.60996 15.6527L5.63929 11.0856L2.12209 7.99583C1.89705 7.79813 1.81122 7.48549 1.90378 7.20061C1.99635 6.91573 2.24955 6.71324 2.54781 6.68558L7.20944 6.25322L9.06116 1.95335C9.17964 1.67824 9.45046 1.5 9.75 1.5ZM9.75 4.1462L8.41098 7.25554C8.3024 7.50767 8.06475 7.68033 7.7914 7.70569L4.42047 8.01833L6.96385 10.2527C7.17008 10.4338 7.26086 10.7132 7.2005 10.981L6.45617 14.2836L9.36708 12.5551C9.60312 12.415 9.89688 12.415 10.1329 12.5551L13.0438 14.2836L12.2995 10.981C12.2391 10.7132 12.3299 10.4338 12.5362 10.2527L15.0795 8.01833L11.7086 7.70569C11.4353 7.68033 11.1976 7.50767 11.089 7.25554L9.75 4.1462Z" fill="#FEE600"/></svg>
+                                <span id="deal-view-seller-rating">0</span>
+                            </div>
+                            <div class="deal-view-stat-label">Рейтинг</div>
+                        </div>
+                        <div class="deal-view-stat-sep"></div>
+                        <div class="deal-view-user-stat">
+                            <div class="deal-view-stat-value"><span id="deal-view-seller-deposit">$0</span></div>
+                            <div class="deal-view-stat-label">Депозит <svg width="10" height="10" viewBox="0 0 17 16" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M11.6928 8.23643L7.02612 12.9031L6.08331 11.9603L10.2786 7.76502L6.08331 3.56976L7.02612 2.62695L11.6928 7.29362C11.9531 7.55397 11.9531 7.97608 11.6928 8.23643Z" fill="#878787"/></svg></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Buyer Info -->
+                <div class="card deal-view-user-card deal-view-buyer-card">
+                    <div class="deal-view-user-row">
+                        <div id="deal-view-buyer-avatar" class="deal-view-user-avatar-sq">?</div>
+                        <div class="deal-view-user-info">
+                            <div class="deal-view-user-name" id="deal-view-buyer-name">Покупатель</div>
+                            <div class="deal-view-user-username" id="deal-view-buyer-username">@user</div>
+                        </div>
+                    </div>
+                    <div class="deal-view-user-stats">
+                        <div class="deal-view-user-stat">
+                            <div class="deal-view-stat-value">
+                                <svg width="14" height="13" viewBox="0 0 19 18" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M9.75 1.5C10.0495 1.5 10.3204 1.67824 10.4388 1.95335L12.2906 6.25322L16.9522 6.68558C17.2505 6.71324 17.5037 6.91573 17.5962 7.20061C17.6888 7.48549 17.603 7.79813 17.3779 7.99583L13.8607 11.0856L14.89 15.6527C14.9559 15.9449 14.8416 16.2483 14.5992 16.4244C14.3569 16.6005 14.033 16.6154 13.7755 16.4625L9.75 14.0723L5.72453 16.4625C5.46697 16.6154 5.14311 16.6005 4.90077 16.4244C4.65844 16.2483 4.5441 15.9449 4.60996 15.6527L5.63929 11.0856L2.12209 7.99583C1.89705 7.79813 1.81122 7.48549 1.90378 7.20061C1.99635 6.91573 2.24955 6.71324 2.54781 6.68558L7.20944 6.25322L9.06116 1.95335C9.17964 1.67824 9.45046 1.5 9.75 1.5ZM9.75 4.1462L8.41098 7.25554C8.3024 7.50767 8.06475 7.68033 7.7914 7.70569L4.42047 8.01833L6.96385 10.2527C7.17008 10.4338 7.26086 10.7132 7.2005 10.981L6.45617 14.2836L9.36708 12.5551C9.60312 12.415 9.89688 12.415 10.1329 12.5551L13.0438 14.2836L12.2995 10.981C12.2391 10.7132 12.3299 10.4338 12.5362 10.2527L15.0795 8.01833L11.7086 7.70569C11.4353 7.68033 11.1976 7.50767 11.089 7.25554L9.75 4.1462Z" fill="#FEE600"/></svg>
+                                <span id="deal-view-buyer-rating">0</span>
+                            </div>
+                            <div class="deal-view-stat-label">Рейтинг</div>
+                        </div>
+                        <div class="deal-view-stat-sep"></div>
+                        <div class="deal-view-user-stat">
+                            <div class="deal-view-stat-value"><span id="deal-view-buyer-deposit">$0</span></div>
+                            <div class="deal-view-stat-label">Депозит <svg width="10" height="10" viewBox="0 0 17 16" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M11.6928 8.23643L7.02612 12.9031L6.08331 11.9603L10.2786 7.76502L6.08331 3.56976L7.02612 2.62695L11.6928 7.29362C11.9531 7.55397 11.9531 7.97608 11.6928 8.23643Z" fill="#878787"/></svg></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Deal Terms -->
+                <div class="card deal-view-terms-card">
+                    <div class="deal-view-terms-label">Условия сделки</div>
+                    <div class="deal-view-terms-text" id="deal-view-terms">условия сделки телеграм бот тестовый</div>
+                </div>
+
+                </div><!-- /deal-details-mode -->
+
+            </div>
+
+        <!-- ══ ADMIN PANEL ═══════════════════════════════════════════════════ -->
+        <div id="page-admin" class="page">
+            <!-- Tab bar -->
+            <div class="admin-tabs">
+                <button class="admin-tab active" onclick="adminTab('stats',this)">📊 Статистика</button>
+                <button class="admin-tab" onclick="adminTab('users',this)">👥 Пользователи</button>
+                <button class="admin-tab" onclick="adminTab('deals',this)">📦 Сделки</button>
+                <button class="admin-tab" onclick="adminTab('broadcast',this)">📣 Рассылка</button>
+            </div>
+
+            <!-- Stats tab -->
+            <div id="admin-tab-stats" class="admin-tab-content">
+                <div class="admin-stats-grid" id="admin-stats-grid">
+                    <div class="admin-stat-card"><div class="admin-stat-val" id="ast-users">—</div><div class="admin-stat-lbl">Пользователей</div></div>
+                    <div class="admin-stat-card"><div class="admin-stat-val" id="ast-deals">—</div><div class="admin-stat-lbl">Всего сделок</div></div>
+                    <div class="admin-stat-card"><div class="admin-stat-val" id="ast-completed">—</div><div class="admin-stat-lbl">Завершено</div></div>
+                    <div class="admin-stat-card"><div class="admin-stat-val" id="ast-pending">—</div><div class="admin-stat-lbl">Ожидают</div></div>
+                    <div class="admin-stat-card"><div class="admin-stat-val" id="ast-new-users">—</div><div class="admin-stat-lbl">Новых сегодня</div></div>
+                    <div class="admin-stat-card"><div class="admin-stat-val" id="ast-new-deals">—</div><div class="admin-stat-lbl">Сделок сегодня</div></div>
+                </div>
+                <div class="card" style="margin:12px 14px 0">
+                    <div style="font-size:13px;color:var(--subtext);margin-bottom:10px;font-weight:600">Курсы валют</div>
+                    <div id="admin-rates-grid" class="admin-rates-grid"></div>
+                    <button class="btn-gray" style="margin-top:12px;width:100%" onclick="adminRefreshRates()">🔄 Обновить курсы</button>
+                </div>
+            </div>
+
+            <!-- Users tab -->
+            <div id="admin-tab-users" class="admin-tab-content hidden">
+                <div style="padding:12px 14px 0">
+                    <input class="deal-create-input" type="text" id="admin-user-search" placeholder="Поиск: @username, имя, ID" oninput="adminSearchUsers()" style="width:100%;box-sizing:border-box">
+                </div>
+                <div id="admin-users-list" style="padding:8px 14px"></div>
+                <div id="admin-users-pagination" style="padding:0 14px 12px;display:flex;gap:8px"></div>
+            </div>
+
+            <!-- Deals tab -->
+            <div id="admin-tab-deals" class="admin-tab-content hidden">
+                <div style="padding:12px 14px 0;display:flex;gap:8px;flex-wrap:wrap">
+                    <button class="admin-filter-btn active" onclick="adminFilterDeals('',this)">Все</button>
+                    <button class="admin-filter-btn" onclick="adminFilterDeals('pending',this)">Ожидают</button>
+                    <button class="admin-filter-btn" onclick="adminFilterDeals('awaiting_payment',this)">На оплате</button>
+                    <button class="admin-filter-btn" onclick="adminFilterDeals('completed',this)">Завершены</button>
+                    <button class="admin-filter-btn" onclick="adminFilterDeals('cancelled',this)">Отменены</button>
+                </div>
+                <div id="admin-deals-list" style="padding:8px 14px"></div>
+                <div id="admin-deals-pagination" style="padding:0 14px 12px;display:flex;gap:8px"></div>
+            </div>
+
+            <!-- Broadcast tab -->
+            <div id="admin-tab-broadcast" class="admin-tab-content hidden">
+                <div style="padding:12px 14px">
+                    <div class="deal-create-label" style="margin-bottom:8px">Текст рассылки</div>
+                    <textarea id="admin-broadcast-text" class="deal-create-textarea" placeholder="Введите сообщение для рассылки..." style="min-height:140px"></textarea>
+                    <div style="margin-top:6px;font-size:12px;color:var(--subtext)" id="admin-bc-counter">0/4096</div>
+                    <div style="margin-top:12px;font-size:13px;color:var(--subtext);margin-bottom:8px">Получатели</div>
+                    <select id="admin-bc-target" class="deal-create-input deal-create-select">
+                        <option value="all">Все пользователи</option>
+                    </select>
+                    <button class="btn-primary" style="margin-top:14px;width:100%" onclick="adminSendBroadcast()">📣 Отправить рассылку</button>
+                    <div id="admin-bc-result" style="margin-top:10px;font-size:13px;color:var(--accent-bright)"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin user edit modal -->
+        <div id="admin-user-modal" class="admin-modal hidden">
+            <div class="admin-modal-body">
+                <div class="admin-modal-title">Редактировать пользователя</div>
+                <div id="admin-modal-username" style="font-size:14px;color:var(--accent-bright);margin-bottom:14px"></div>
+                <div class="admin-field-row">
+                    <label class="admin-field-label">Депозит ($)</label>
+                    <input type="number" id="amod-deposit" class="deal-create-input" min="0" step="0.01">
+                </div>
+                <div class="admin-field-row">
+                    <label class="admin-field-label">Сумма рейтинга</label>
+                    <input type="number" id="amod-rating-sum" class="deal-create-input" min="0" step="0.1">
+                </div>
+                <div class="admin-field-row">
+                    <label class="admin-field-label">Кол-во оценок</label>
+                    <input type="number" id="amod-rating-count" class="deal-create-input" min="0" step="1">
+                </div>
+                <div class="admin-field-row">
+                    <label class="admin-field-label">Добавить завершённых сделок</label>
+                    <input type="number" id="amod-add-deals" class="deal-create-input" min="0" max="100" step="1" value="0">
+                </div>
+                <div class="admin-field-row">
+                    <label class="admin-field-label">Статус</label>
+                    <select id="amod-status" class="deal-create-input deal-create-select">
+                        <option value="user">user</option>
+                        <option value="moderator">moderator</option>
+                        <option value="arbiter">arbiter</option>
+                        <option value="admin">admin</option>
+                        <option value="banned">banned</option>
+                    </select>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px">
+                    <button class="btn-gray" onclick="closeAdminModal()">Отмена</button>
+                    <button class="btn-primary" onclick="saveAdminUser()">Сохранить</button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav ref-bottom-nav">
+        <button class="nav-btn active" onclick="navTo('search',this)">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3V10.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+            <span>Главная</span>
+        </button>
+        <button class="nav-btn" onclick="navTo('help',this)">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.8"/><rect x="15" y="3" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.8"/><rect x="3" y="15" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.8"/><rect x="15" y="15" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.8"/></svg>
+            <span>Каталог</span>
+        </button>
+        <button class="nav-btn nav-deals" onclick="navTo('deals',this)">
+            <svg width="27" height="27" viewBox="0 0 24 24" fill="none"><rect x="5" y="6" width="14" height="14" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M9 6V4.7C9 3.8 9.7 3 10.7 3h2.6c1 0 1.7.8 1.7 1.7V6M12 9v8M14.3 11.1c0-1-1-1.6-2.3-1.6s-2.3.6-2.3 1.6c0 2.4 4.6 1.2 4.6 3.6 0 1-1 1.8-2.3 1.8s-2.3-.8-2.3-1.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            <span>Сделки</span>
+        </button>
+        <button class="nav-btn" onclick="navTo('chat',this)">
+            <span class="nav-chat-icon"><svg width="25" height="25" viewBox="0 0 24 24" fill="none"><path d="M4 5.8C4 4.8 4.8 4 5.8 4h12.4C19.2 4 20 4.8 20 5.8v8.4c0 1-.8 1.8-1.8 1.8H11l-4.7 3.6V16H5.8c-1 0-1.8-.8-1.8-1.8V5.8Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg><i></i></span>
+            <span>Чат</span>
+        </button>
+        <button class="nav-btn" onclick="navTo('profile',this)">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="7.2" r="3.2" stroke="currentColor" stroke-width="1.8"/><path d="M5.5 20c.3-4.5 2.7-6.8 6.5-6.8s6.2 2.3 6.5 6.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            <span>Профиль</span>
+        </button>
+    </nav>
+
+</div>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script type="module" src="app.js?v=20260914b"></script>
+</body>
+</html>
