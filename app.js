@@ -2772,3 +2772,93 @@ document.addEventListener('click', (event) => {
 });
 
 document.addEventListener('DOMContentLoaded', renderPublicationSectionMenu);
+
+// ── Publication field-by-field validation (reference screenshots) ───────
+function setPublicationError(field, on) {
+  const map = {
+    section: ['publication-section-trigger','publication-section-error'],
+    subsection: ['publication-subsection-trigger','publication-subsection-error'],
+    title: ['publication-title','publication-title-error'],
+    body: [null,'publication-body-error']
+  };
+  const pair = map[field];
+  if (!pair) return;
+  const control = pair[0] && document.getElementById(pair[0]);
+  const error = document.getElementById(pair[1]);
+  control?.classList.toggle('validation-error', !!on);
+  error?.classList.toggle('visible', !!on);
+  if (field === 'body') document.querySelector('#page-publication-create .publication-editor')?.classList.toggle('validation-error', !!on);
+}
+
+function setPublicationRulesError(on) {
+  document.getElementById('publication-rules-error')?.classList.toggle('visible', !!on);
+  document.querySelector('#publication-rules-card .publication-rules-accept')?.classList.toggle('validation-error', !!on);
+}
+
+function clearPublicationFieldError(field) { setPublicationError(field, false); }
+
+const _validationOldSelectSection = selectPublicationSection;
+selectPublicationSection = function(name) {
+  _validationOldSelectSection(name);
+  setPublicationError('section', false);
+  setPublicationError('subsection', false);
+};
+const _validationOldSelectSubsection = selectPublicationSubsection;
+selectPublicationSubsection = function(name) {
+  _validationOldSelectSubsection(name);
+  setPublicationError('subsection', false);
+};
+const _validationOldRulesAccepted = setPublicationRulesAccepted;
+setPublicationRulesAccepted = function(value) {
+  _validationOldRulesAccepted(value);
+  if (value) setPublicationRulesError(false);
+};
+const _validationOldCounter = updatePublicationCounter;
+updatePublicationCounter = function() {
+  _validationOldCounter();
+  const text = (publicationBodyEl()?.innerText || '').trim();
+  if (text) setPublicationError('body', false);
+};
+
+validatePublicationDraft = function(showMessage = true) {
+  const draft = getPublicationDraft();
+  const cfg = PUBLICATION_CATALOG[draft.section];
+  const needsSubsection = !!cfg?.sub?.length;
+  const errors = {
+    section: !draft.section || draft.section === 'Выберите раздел',
+    subsection: needsSubsection && !draft.subsection,
+    rules: !!draft.section && !_publicationRulesAccepted,
+    title: !draft.title,
+    body: !draft.plainText
+  };
+  if (showMessage) {
+    setPublicationError('section', errors.section);
+    setPublicationError('subsection', errors.subsection);
+    setPublicationError('title', errors.title);
+    setPublicationError('body', errors.body);
+    setPublicationRulesError(errors.rules);
+    const status = document.getElementById('publication-status');
+    if (status) status.textContent = '';
+    const first = errors.section ? document.getElementById('publication-section-trigger')
+      : errors.subsection ? document.getElementById('publication-subsection-trigger')
+      : errors.rules ? document.getElementById('publication-rules-card')
+      : errors.title ? document.getElementById('publication-title')
+      : errors.body ? document.querySelector('#page-publication-create .publication-editor') : null;
+    if (first) setTimeout(() => first.scrollIntoView({behavior:'smooth',block:'center'}), 20);
+  }
+  return Object.values(errors).some(Boolean) ? null : draft;
+};
+
+const _validationOldResetPublicationForm = resetPublicationForm;
+resetPublicationForm = function() {
+  _validationOldResetPublicationForm();
+  ['section','subsection','title','body'].forEach(f => setPublicationError(f,false));
+  setPublicationRulesError(false);
+};
+
+window.clearPublicationFieldError = clearPublicationFieldError;
+window.selectPublicationSection = selectPublicationSection;
+window.selectPublicationSubsection = selectPublicationSubsection;
+window.setPublicationRulesAccepted = setPublicationRulesAccepted;
+window.updatePublicationCounter = updatePublicationCounter;
+window.validatePublicationDraft = validatePublicationDraft;

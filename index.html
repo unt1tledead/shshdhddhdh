@@ -426,6 +426,7 @@
                         <span id="publication-section-label">Выберите раздел</span>
                         <svg width="21" height="21" viewBox="0 0 24 24" fill="none"><path d="M5 9l7 7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
                     </button>
+                    <div id="publication-section-error" class="publication-field-error">Выберите раздел</div>
                     <div id="publication-section-menu" class="publication-section-menu hidden"></div>
                 </div>
 
@@ -436,6 +437,7 @@
                             <span id="publication-subsection-label">Выберите подраздел</span>
                             <svg width="21" height="21" viewBox="0 0 24 24" fill="none"><path d="M5 9l7 7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
                         </button>
+                        <div id="publication-subsection-error" class="publication-field-error">Выберите подраздел</div>
                         <div id="publication-subsection-menu" class="publication-section-menu publication-subsection-menu hidden"></div>
                     </div>
                 </div>
@@ -456,7 +458,8 @@
 
             <section class="publication-card publication-main-content">
                 <h2>Основной контент</h2>
-                <input id="publication-title" class="publication-title-input" type="text" placeholder="Введите название публикации" maxlength="160">
+                <input id="publication-title" class="publication-title-input" type="text" placeholder="Введите название публикации" maxlength="160" oninput="clearPublicationFieldError('title')">
+                <div id="publication-title-error" class="publication-field-error">Заполните поле</div>
                 <div class="publication-editor">
                     <div class="publication-toolbar" aria-label="Панель форматирования">
                         <button id="publication-format-trigger" class="publication-format-trigger" type="button" onclick="togglePublicationFormatMenu()">Normal</button>
@@ -483,12 +486,14 @@
                     <input id="publication-inline-image" type="file" accept="image/*" hidden onchange="handlePublicationInlineImage(this)">
                 </div>
                 <div id="publication-counter" class="publication-counter">0/12000</div>
+                <div id="publication-body-error" class="publication-field-error">Заполните поле</div>
 
                 <div class="publication-files-block">
                     <h2>Файлы</h2>
                     <input id="publication-files" type="file" multiple hidden onchange="renderPublicationFiles()">
                     <button class="publication-add-files" type="button" onclick="document.getElementById('publication-files').click()"><span>＋</span> Добавить файлы</button>
                     <div id="publication-file-list" class="publication-file-list"></div>
+                    <div id="publication-rules-error" class="publication-rules-error">Вы должны согласиться с правилами публикации</div>
                 </div>
             </section>
 
