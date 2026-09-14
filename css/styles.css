@@ -2017,3 +2017,56 @@ html, body {
     .ref-seg-btn { font-size: 17px; }
     .chat-row-title { font-size: 17px; }
 }
+
+/* Mock user picker for chat creation */
+.chat-user-picker { position: relative; }
+.chat-search-users:focus-within { outline: 1px solid #f1dc33; }
+.chat-user-dropdown {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% + 7px);
+    z-index: 30;
+    max-height: 318px;
+    overflow-y: auto;
+    background: #292929;
+    border-radius: 12px;
+    padding: 6px;
+    box-shadow: 0 14px 30px rgba(0,0,0,.36);
+}
+.chat-user-dropdown::-webkit-scrollbar { width: 5px; }
+.chat-user-dropdown::-webkit-scrollbar-thumb { background: #5e5e5e; border-radius: 10px; }
+.chat-user-option {
+    width: 100%; border: 0; background: transparent; color: #fff;
+    display: flex; align-items: center; gap: 10px; padding: 8px 7px;
+    border-radius: 9px; text-align: left;
+}
+.chat-user-option:active, .chat-user-option:hover { background: #3a3a3a; }
+.chat-user-avatar {
+    width: 38px; height: 38px; flex: 0 0 38px; border-radius: 50%;
+    display: grid; place-items: center; overflow: hidden;
+    background: #1d1d1d; border: 1px solid #3f3f3f;
+    font-size: 14px; font-weight: 700;
+}
+.chat-user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.chat-user-option-main { min-width: 0; flex: 1; }
+.chat-user-option-name { display: flex; align-items: center; gap: 5px; font-size: 15px; line-height: 1.2; }
+.chat-user-role { color: #f0da37; font-size: 12px; white-space: nowrap; }
+.chat-online-dot { width: 7px; height: 7px; border-radius: 50%; background: #24aa74; display: inline-block; }
+.chat-user-option-sub { margin-top: 3px; color: #8a8a8a; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chat-selected-users { margin-top: 11px; display: grid; gap: 8px; }
+.chat-selected-user {
+    min-height: 59px; border-radius: 12px; background: #3b3b3b;
+    display: flex; align-items: center; gap: 10px; padding: 8px 12px;
+}
+.chat-selected-user .chat-user-avatar { width: 43px; height: 43px; flex-basis: 43px; }
+.chat-selected-user-main { flex: 1; min-width: 0; }
+.chat-selected-user-name { font-size: 16px; color: #f2f2f2; }
+.chat-selected-user-sub { color: #8f8f8f; font-size: 12px; margin-top: 2px; }
+.chat-selected-remove { border: 0; background: transparent; color: #999; font-size: 31px; line-height: 1; padding: 0 4px; }
+.chat-history-option { margin: 22px 0 3px; display: flex; align-items: center; gap: 10px; color: #858585; font-size: 13px; line-height: 1.25; }
+.chat-history-option input { position: absolute; opacity: 0; pointer-events: none; }
+.chat-history-box { width: 30px; height: 30px; border: 1px solid #3a3a3a; border-radius: 8px; flex: 0 0 30px; }
+.chat-history-option input:checked + .chat-history-box { box-shadow: inset 0 0 0 8px #f1dc33; background: #222; }
+.chat-create-submit:not(:disabled) { background: #ffe600; color: #171717; }
+.chat-create-submit:disabled { opacity: 1; }
