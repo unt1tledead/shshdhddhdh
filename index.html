@@ -426,20 +426,31 @@
                         <span id="publication-section-label">Выберите раздел</span>
                         <svg width="21" height="21" viewBox="0 0 24 24" fill="none"><path d="M5 9l7 7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
                     </button>
-                    <div id="publication-section-menu" class="publication-section-menu hidden">
-                        <button type="button" onclick="selectPublicationSection('О нас')">О нас</button>
-                        <button type="button" onclick="selectPublicationSection('Обналичка')">Обналичка</button>
-                        <button type="button" onclick="selectPublicationSection('Обмен и Миксеры')">Обмен и Миксеры</button>
-                        <button type="button" onclick="selectPublicationSection('SIM,Телефония,Базы')">SIM,Телефония,Базы</button>
-                        <button type="button" onclick="selectPublicationSection('Документы и верификации')">Документы и верификации</button>
-                        <button type="button" onclick="selectPublicationSection('Цифровые товары и услуги')">Цифровые товары и услуги</button>
-                        <button type="button" onclick="selectPublicationSection('Скуп-сервисы')">Скуп-сервисы</button>
-                        <button type="button" onclick="selectPublicationSection('Пробив и поиск')">Пробив и поиск</button>
-                        <button type="button" onclick="selectPublicationSection('IT-услуги')">IT-услуги</button>
-                        <button type="button" onclick="selectPublicationSection('Торговый раздел')">Торговый раздел</button>
-                        <button type="button" onclick="selectPublicationSection('Обучения и раздачи')">Обучения и раздачи</button>
-                        <button type="button" onclick="selectPublicationSection('Оффтоп и флуд')">Оффтоп и флуд</button>
+                    <div id="publication-section-menu" class="publication-section-menu hidden"></div>
+                </div>
+
+                <div id="publication-subsection-wrap" class="publication-subsection-wrap hidden">
+                    <label class="publication-label publication-subsection-label">Название подраздела</label>
+                    <div class="publication-section-picker publication-subsection-picker">
+                        <button id="publication-subsection-trigger" class="publication-select" type="button" onclick="togglePublicationSubsections()">
+                            <span id="publication-subsection-label">Выберите подраздел</span>
+                            <svg width="21" height="21" viewBox="0 0 24 24" fill="none"><path d="M5 9l7 7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                        </button>
+                        <div id="publication-subsection-menu" class="publication-section-menu publication-subsection-menu hidden"></div>
                     </div>
+                </div>
+
+                <div id="publication-rules-card" class="publication-rules-card hidden">
+                    <div id="publication-rules-content" class="publication-rules-content">
+                        <h3>Правила публикации</h3>
+                        <div id="publication-rules-text" class="publication-rules-text"></div>
+                    </div>
+                    <label class="publication-rules-accept">
+                        <input id="publication-rules-checkbox" type="checkbox" onchange="setPublicationRulesAccepted(this.checked)">
+                        <span class="publication-checkmark">✓</span>
+                        <span>Я ознакомился с правилами</span>
+                    </label>
+                    <button id="publication-rules-toggle" class="publication-rules-toggle" type="button" onclick="togglePublicationRules()">Скрыть правила</button>
                 </div>
             </section>
 

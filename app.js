@@ -2450,3 +2450,305 @@ document.addEventListener('DOMContentLoaded', () => {
         ta.addEventListener('input', () => { counter.textContent = `${ta.value.length}/4096`; });
     }
 });
+
+// ── Publication catalogue states reconstructed from reference screenshots ──
+const PUBLICATION_CATALOG = {
+  'О нас': {
+    sub: ['Вопросы новичков', 'Книга жалоб'],
+    rules: [
+      'Административный раздел. Публикация запрещена за исключением «Книга жалоб» и «Вопросы новичков».',
+    ],
+    deposit: null,
+  },
+  'Обналичка': {
+    sub: ['Заливы', 'Белый обнал', 'Черный обнал', 'Процессинг платежей', 'Кредитование'],
+    deposit: 10000,
+  },
+  'Обмен и Миксеры': {
+    sub: ['Обменники', 'Миксеры', 'Поиск решений'],
+    deposit: 5000,
+  },
+  'SIM,Телефония,Базы': {
+    sub: ['Услуги телефонии', 'Прозвон-сервисы', 'Базы для прозвона', 'Прием Звонков и СМС', 'Продажа SIM-карт', 'Восстановление SIM', 'Базы данных'],
+    deposit: 2000,
+  },
+  'Документы и верификации': {
+    sub: ['Физические документы', 'Прохождение верификаций', 'Отрисовка документов', 'Изготовление печатей', 'Сканы документов'],
+    deposit: 1000,
+  },
+  'Цифровые товары и услуги': {
+    sub: ['Мессенджеры и соц.сети', 'VPN и Proxy', 'Подписки и ключи', 'Пополнение и оплата'],
+    deposit: 300,
+  },
+  'Скуп-сервисы': {
+    sub: ['Аккаунты', 'Дебет и Юр.лица', 'Логи', 'SIM-карты', 'Товары и техника'],
+    special: 'search',
+  },
+  'Пробив и поиск': {
+    sub: ['Услуги пробива и OSINT', 'Поиск пробива'],
+    deposit: 1000,
+  },
+  'IT-услуги': {
+    sub: ['Программирование и белый хакинг', 'Дизайн и Видеопродакшн', 'SMM и продвижение'],
+    deposit: 300,
+  },
+  'Торговый раздел': {
+    sub: ['Отдых'],
+    deposit: 1000,
+  },
+  'Обучения и раздачи': {
+    sub: ['Гайды и статьи', 'Схемы заработка', 'Халява, раздачи, сливы'],
+    special: 'education',
+  },
+  'Оффтоп и флуд': {
+    sub: [],
+    special: 'offtopic',
+  },
+};
+
+const PUBLICATION_COMMON_RULES = [
+  'Публикация должна соответствовать выбранной категории, разделу и подразделу. Заголовок, описание, изображения, метки и другие элементы должны точно отражать суть предложения.',
+  'Указывайте актуальные и полные условия: стоимость или курс, комиссии, лимиты, сроки, порядок работы, ограничения и другие существенные сведения. Запрещено скрывать важные условия и сообщать их только после обращения в личные сообщения. При изменении условий отредактируйте или деактивируйте публикацию.',
+  'Один и тот же оффер может иметь только одну активную публикацию. Дублирование в других разделах, спам, повторное размещение после отклонения без исправления причины и обход ограничений через другие аккаунты запрещены.',
+  'Контакты и ссылки должны быть рабочими, относиться к предложению и контролироваться автором. Чужие, подменные или вводящие в заблуждение контакты и ссылки запрещены.',
+  'Запрещён мошеннический контент, скам-схемы и попытки увести сделку в обход площадки.',
+  'Запрещено использовать чужие логотипы, бренды или материалы без права на них.',
+  'Публикация должна соответствовать общим правилам форума. Администрация вправе запросить подтверждение заявленных сведений, отправить публикацию на доработку, временно скрыть, отклонить или удалить её до или после публикации при выявлении нарушения, несоответствия выбранному разделу либо невозможности подтвердить существенную информацию.',
+  'Одобрение публикации модерацией не является гарантией надёжности автора, качества предложения или выполнения заявленных условий. Отправляя публикацию, автор подтверждает достоверность информации, наличие прав на используемые материалы и принимает ответственность за содержание публикации.',
+];
+
+function publicationRulesFor(section) {
+  const cfg = PUBLICATION_CATALOG[section] || {};
+  if (cfg.rules) return cfg.rules.slice();
+  if (cfg.special === 'search') {
+    return [
+      'Депозит для размещения публикации о поиске не требуется. Раздел предназначен только для реального поиска товаров, услуг, специалистов или других решений. Размещение собственного предложения, рекламы или скрытого продвижения под видом поиска запрещено.',
+      'Публикация должна соответствовать выбранной категории, разделу или подразделу. Заголовок, описание, изображения и другие элементы должны точно отражать предмет поиска.',
+      'Чётко указывайте, что именно требуется и условия: требования, объём или количество, бюджет, сроки, формат работы, ограничения и критерии выбора, если они применимы. Запрещено скрывать важные условия и сообщать их только после обращения в личные сообщения.',
+      'Информация должна быть актуальной и достоверной. При изменении условий отредактируйте публикацию, а после завершения поиска — деактивируйте её.',
+      ...PUBLICATION_COMMON_RULES.slice(2),
+    ];
+  }
+  if (cfg.special === 'education') {
+    return [
+      'Раздел предназначен для бесплатного обмена полезными материалами: гайдами, статьями, способами заработка, раздачами и другими информационными публикациями. Депозит для размещения не требуется.',
+      'Публикация должна соответствовать выбранному подразделу. Заголовок, описание, изображения, метки и прикреплённые материалы должны точно отражать её содержание. Запрещены кликбейт, ложные обещания и публикации без понятной практической ценности.',
+      'Информация должна быть актуальной, понятной и достаточно полной для применения. При публикации чужого материала необходимо указать автора или источник. Запрещено выдавать чужие материалы и результаты за собственные.',
+      'В схемах заработка необходимо раскрывать принцип работы, необходимые вложения, расходы, ограничения и возможные риски. Запрещены гарантии дохода, поддельные результаты, скрытые условия.',
+      'Раздачи и предложения, обозначенные как бесплатные, должны действительно предоставляться без оплаты. Условия, сроки, количество доступных мест или материалов и порядок получения должны быть указаны заранее.',
+      'Ссылки, архивы, программы и другие файлы должны быть безопасными и соответствовать описанию.',
+      'Коммерческие предложения, продажа материалов или доступа, реклама, реферальные ссылки и скрытое продвижение запрещены. Ссылки на сторонние ресурсы допускаются только как источник или необходимое дополнение к публикации.',
+      ...PUBLICATION_COMMON_RULES.slice(2),
+    ];
+  }
+  if (cfg.special === 'offtopic') {
+    return [
+      'Раздел предназначен для некоммерческих тем, свободного общения и публикаций, не относящихся к другим разделам форума. Депозит для размещения не требуется. Публикации, для которых предусмотрен профильный раздел, могут быть перенесены или удалены.',
+      'Запрещены коммерческие предложения, объявления о продаже, покупке или обмене, поиск клиентов или исполнителей, реклама, реферальные ссылки и скрытое продвижение. Обсуждение товаров, сервисов и проектов допускается, если публикация не используется для их продвижения или заключения сделки.',
+      'Заголовок, описание, изображения, метки и другие элементы должны соответствовать содержанию публикации. Запрещены вводящие в заблуждение заголовки, намеренно ложная информация и публикации без понятной темы или содержания.',
+      'Запрещены дубли, массовое размещение однотипных публикаций, бессмысленные сообщения, искусственное поднятие тем и обход ограничений через другие аккаунты. Свободное и неформальное общение допускается, но не должно превращаться в спам.',
+      'Соблюдайте уважительный формат общения. Запрещены угрозы, оскорбления, травля, целенаправленные провокации, призывы к насилию и публикация персональных или конфиденциальных данных других лиц без их согласия.',
+      'Ссылки, файлы и другие материалы должны быть безопасными и не вводить пользователей в заблуждение. Запрещены мошеннические схемы, фишинг, вредоносные материалы, поддельные розыгрыши и попытки выдать себя за другое лицо или проект.',
+      ...PUBLICATION_COMMON_RULES.slice(6),
+    ];
+  }
+  const first = cfg.deposit
+    ? `Минимальный депозит для размещения публикации в этом разделе — ${Number(cfg.deposit).toLocaleString('ru-RU')} USDT. Учитывается только фактический депозит на момент создания публикации. Запрещено указывать сумму выше фактического депозита или размещённые на других площадках.`
+    : null;
+  return [first, ...PUBLICATION_COMMON_RULES].filter(Boolean);
+}
+
+let _publicationSection = '';
+let _publicationSubsection = '';
+let _publicationRulesAccepted = false;
+let _publicationRulesCollapsed = false;
+
+function renderPublicationSectionMenu() {
+  const menu = document.getElementById('publication-section-menu');
+  if (!menu) return;
+  menu.innerHTML = Object.keys(PUBLICATION_CATALOG).map(name =>
+    `<button type="button" onclick="selectPublicationSection(${JSON.stringify(name).replace(/"/g,'&quot;')})">${escHtml(name)}</button>`
+  ).join('');
+}
+
+function togglePublicationSections() {
+  const menu = document.getElementById('publication-section-menu');
+  const trigger = document.getElementById('publication-section-trigger');
+  if (!menu) return;
+  renderPublicationSectionMenu();
+  const willOpen = menu.classList.contains('hidden');
+  closePublicationMenus('publication-section-menu');
+  menu.classList.toggle('hidden', !willOpen);
+  trigger?.classList.toggle('open', willOpen);
+}
+
+function selectPublicationSection(name) {
+  if (!PUBLICATION_CATALOG[name]) return;
+  _publicationSection = name;
+  _publicationSubsection = '';
+  _publicationRulesAccepted = false;
+  _publicationRulesCollapsed = false;
+
+  const label = document.getElementById('publication-section-label');
+  if (label) label.textContent = name;
+  document.getElementById('publication-section-menu')?.classList.add('hidden');
+  document.getElementById('publication-section-trigger')?.classList.remove('open');
+
+  const cfg = PUBLICATION_CATALOG[name];
+  const subWrap = document.getElementById('publication-subsection-wrap');
+  const subLabel = document.getElementById('publication-subsection-label');
+  const subMenu = document.getElementById('publication-subsection-menu');
+  if (subLabel) subLabel.textContent = 'Выберите подраздел';
+  if (cfg.sub?.length) {
+    subWrap?.classList.remove('hidden');
+    if (subMenu) subMenu.innerHTML = cfg.sub.map(sub => `<button type="button" onclick="selectPublicationSubsection(${JSON.stringify(sub).replace(/"/g,'&quot;')})">${escHtml(sub)}</button>`).join('');
+  } else {
+    subWrap?.classList.add('hidden');
+    if (subMenu) subMenu.innerHTML = '';
+  }
+  renderPublicationRules(name);
+}
+
+function togglePublicationSubsections() {
+  const menu = document.getElementById('publication-subsection-menu');
+  const trigger = document.getElementById('publication-subsection-trigger');
+  if (!menu || !_publicationSection) return;
+  const willOpen = menu.classList.contains('hidden');
+  closePublicationMenus('publication-subsection-menu');
+  menu.classList.toggle('hidden', !willOpen);
+  trigger?.classList.toggle('open', willOpen);
+}
+
+function selectPublicationSubsection(name) {
+  const cfg = PUBLICATION_CATALOG[_publicationSection];
+  if (!cfg?.sub?.includes(name)) return;
+  _publicationSubsection = name;
+  const label = document.getElementById('publication-subsection-label');
+  if (label) label.textContent = name;
+  document.getElementById('publication-subsection-menu')?.classList.add('hidden');
+  document.getElementById('publication-subsection-trigger')?.classList.remove('open');
+}
+
+function renderPublicationRules(section) {
+  const card = document.getElementById('publication-rules-card');
+  const text = document.getElementById('publication-rules-text');
+  const checkbox = document.getElementById('publication-rules-checkbox');
+  const content = document.getElementById('publication-rules-content');
+  const toggle = document.getElementById('publication-rules-toggle');
+  if (!card || !text) return;
+  const rules = publicationRulesFor(section);
+  text.innerHTML = `<ul>${rules.map(rule => `<li>${escHtml(rule)}</li>`).join('')}</ul>`;
+  card.classList.remove('hidden');
+  content?.classList.remove('hidden');
+  if (checkbox) checkbox.checked = false;
+  if (toggle) toggle.textContent = 'Скрыть правила';
+}
+
+function togglePublicationRules() {
+  if (!_publicationSection) return;
+  _publicationRulesCollapsed = !_publicationRulesCollapsed;
+  const content = document.getElementById('publication-rules-content');
+  const toggle = document.getElementById('publication-rules-toggle');
+  content?.classList.toggle('hidden', _publicationRulesCollapsed);
+  if (toggle) toggle.textContent = _publicationRulesCollapsed ? 'Показать правила' : 'Скрыть правила';
+}
+
+function setPublicationRulesAccepted(value) {
+  _publicationRulesAccepted = !!value;
+  const card = document.getElementById('publication-rules-card');
+  card?.classList.toggle('accepted', _publicationRulesAccepted);
+}
+
+function closePublicationMenus(exceptId='') {
+  ['publication-section-menu','publication-subsection-menu','publication-format-menu'].forEach(id => {
+    if (id !== exceptId) document.getElementById(id)?.classList.add('hidden');
+  });
+  if (exceptId !== 'publication-section-menu') document.getElementById('publication-section-trigger')?.classList.remove('open');
+  if (exceptId !== 'publication-subsection-menu') document.getElementById('publication-subsection-trigger')?.classList.remove('open');
+}
+
+// Keep old generic closer compatible with the new subsection menu.
+const _oldCloseFloatingMenus = window.closeFloatingMenus || closeFloatingMenus;
+closeFloatingMenus = function(exceptId='') {
+  try { _oldCloseFloatingMenus(exceptId); } catch (_) {}
+  if (exceptId !== 'publication-subsection-menu') {
+    document.getElementById('publication-subsection-menu')?.classList.add('hidden');
+    document.getElementById('publication-subsection-trigger')?.classList.remove('open');
+  }
+};
+
+getPublicationDraft = function() {
+  const title = (document.getElementById('publication-title')?.value || '').trim();
+  const editor = publicationBodyEl();
+  const plainText = (editor?.innerText || '').trim();
+  const bodyHtml = editor?.innerHTML || '';
+  const section = _publicationSection || (document.getElementById('publication-section-label')?.textContent || '').trim();
+  const subsection = _publicationSubsection || '';
+  return {title, plainText, bodyHtml, section, subsection};
+};
+
+validatePublicationDraft = function(showMessage = true) {
+  const draft = getPublicationDraft();
+  const status = document.getElementById('publication-status');
+  const cfg = PUBLICATION_CATALOG[draft.section];
+  let message = '';
+  if (!draft.section || draft.section === 'Выберите раздел') message = 'Выберите раздел.';
+  else if (cfg?.sub?.length && !draft.subsection) message = 'Выберите подраздел.';
+  else if (!_publicationRulesAccepted) message = 'Подтвердите, что ознакомились с правилами публикации.';
+  else if (!draft.title) message = 'Введите название публикации.';
+  else if (!draft.plainText) message = 'Введите текст публикации.';
+  if (message && showMessage && status) status.textContent = message;
+  if (!message && status) status.textContent = '';
+  return message ? null : draft;
+};
+
+resetPublicationForm = function() {
+  const title = document.getElementById('publication-title');
+  const body = publicationBodyEl();
+  const files = document.getElementById('publication-files');
+  if (title) title.value = '';
+  if (body) body.innerHTML = '';
+  if (files) files.value = '';
+  document.getElementById('publication-file-list')?.replaceChildren();
+  const sectionLabel = document.getElementById('publication-section-label');
+  const subLabel = document.getElementById('publication-subsection-label');
+  if (sectionLabel) sectionLabel.textContent = 'Выберите раздел';
+  if (subLabel) subLabel.textContent = 'Выберите подраздел';
+  document.getElementById('publication-subsection-wrap')?.classList.add('hidden');
+  document.getElementById('publication-rules-card')?.classList.add('hidden');
+  const checkbox = document.getElementById('publication-rules-checkbox');
+  if (checkbox) checkbox.checked = false;
+  _publicationSection = '';
+  _publicationSubsection = '';
+  _publicationRulesAccepted = false;
+  _publicationRulesCollapsed = false;
+  updatePublicationCounter();
+};
+
+// Make stored publication cards show both levels when available.
+const _oldSaveMockPublication = saveMockPublication;
+saveMockPublication = function(draft) {
+  return _oldSaveMockPublication({...draft, section: draft.subsection ? `${draft.section} · ${draft.subsection}` : draft.section});
+};
+
+window.togglePublicationSections = togglePublicationSections;
+window.selectPublicationSection = selectPublicationSection;
+window.togglePublicationSubsections = togglePublicationSubsections;
+window.selectPublicationSubsection = selectPublicationSubsection;
+window.togglePublicationRules = togglePublicationRules;
+window.setPublicationRulesAccepted = setPublicationRulesAccepted;
+window.validatePublicationDraft = validatePublicationDraft;
+
+// Close the correct dropdowns when tapping outside, matching the mobile reference.
+document.addEventListener('click', (event) => {
+  if (!event.target.closest('.publication-section-picker')) {
+    document.getElementById('publication-section-menu')?.classList.add('hidden');
+    document.getElementById('publication-section-trigger')?.classList.remove('open');
+  }
+  if (!event.target.closest('.publication-subsection-picker')) {
+    document.getElementById('publication-subsection-menu')?.classList.add('hidden');
+    document.getElementById('publication-subsection-trigger')?.classList.remove('open');
+  }
+});
+
+document.addEventListener('DOMContentLoaded', renderPublicationSectionMenu);
