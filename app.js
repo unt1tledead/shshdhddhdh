@@ -1,7 +1,7 @@
 /* global Telegram */
 'use strict';
 
-const APP_VERSION = '20260812';
+const APP_VERSION = '20260915-pinfix2';
 console.log(`[APP] app.js loaded, version ${APP_VERSION}`);
 window.APP_VERSION = APP_VERSION;
 
@@ -79,11 +79,16 @@ window.pinPress = pinPress;
 window.pinBackspace = pinBackspace;
 
 // ── Boot ──────────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-    boot();
-});
+document.addEventListener('DOMContentLoaded', boot);
 
 function boot() {
+    // One-time recovery for the broken PIN build: clear stale failed-attempt/lockout state.
+    const pinFixKey = 'gw_pin_fix_release';
+    if (localStorage.getItem(pinFixKey) !== APP_VERSION) {
+        localStorage.removeItem(KEY_ATTEMPTS);
+        localStorage.removeItem(KEY_LOCKOUT);
+        localStorage.setItem(pinFixKey, APP_VERSION);
+    }
     // Парсим параметры из URL для открытия сделки
     const params = new URLSearchParams(window.location.search);
     const dealIdParam = params.get('deal_id');
@@ -98,7 +103,7 @@ function boot() {
     }
 
     // Check active lockout
-    const lockoutUntil = parseInt(localStorage.getItem(KEY_LOCKOUT) || '0');
+    const lockoutUntil = parseInt(localStorage.getItem(KEY_LOCKOUT) || '0', 10);
     if (lockoutUntil > Date.now()) {
         pinMode = localStorage.getItem(KEY_PIN) ? 'enter' : 'setup';
         showScreen('pin-screen');
@@ -106,6 +111,13 @@ function boot() {
         startLockoutTimer(lockoutUntil);
         return;
     }
+
+    // A stale/expired lockout must never leave the keypad disabled after a deploy/reload.
+    localStorage.removeItem(KEY_LOCKOUT);
+    setNumpadEnabled(true);
+    document.getElementById('pin-lockout')?.classList.add('hidden');
+    pinBuffer = '';
+    updateDots();
 
     const storedPin = localStorage.getItem(KEY_PIN);
     if (!storedPin) {
@@ -155,11 +167,19 @@ function showScreen(id) {
 
 // ── PIN: key press ────────────────────────────────────────────────────────
 function pinPress(digit) {
-    // Blocked during lockout
-    if (!document.getElementById('pin-lockout').classList.contains('hidden')) return;
+    const lockoutUntil = parseInt(localStorage.getItem(KEY_LOCKOUT) || '0', 10);
+    if (lockoutUntil > Date.now()) return;
+
+    // Recover automatically from an expired lockout even if the page stayed open.
+    if (lockoutUntil) {
+        localStorage.removeItem(KEY_LOCKOUT);
+        document.getElementById('pin-lockout')?.classList.add('hidden');
+        setNumpadEnabled(true);
+    }
+
     if (pinBuffer.length >= 4) return;
 
-    pinBuffer += digit;
+    pinBuffer += String(digit);
     updateDots();
 
     if (pinBuffer.length === 4) {

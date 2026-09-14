@@ -46,24 +46,24 @@
 
             <div class="numpad">
                 <div class="numpad-row">
-                    <button class="numpad-btn" onclick="pinPress('1')">1</button>
-                    <button class="numpad-btn" onclick="pinPress('2')">2</button>
-                    <button class="numpad-btn" onclick="pinPress('3')">3</button>
+                    <button type="button" class="numpad-btn" onclick="pinPress('1')">1</button>
+                    <button type="button" class="numpad-btn" onclick="pinPress('2')">2</button>
+                    <button type="button" class="numpad-btn" onclick="pinPress('3')">3</button>
                 </div>
                 <div class="numpad-row">
-                    <button class="numpad-btn" onclick="pinPress('4')">4</button>
-                    <button class="numpad-btn" onclick="pinPress('5')">5</button>
-                    <button class="numpad-btn" onclick="pinPress('6')">6</button>
+                    <button type="button" class="numpad-btn" onclick="pinPress('4')">4</button>
+                    <button type="button" class="numpad-btn" onclick="pinPress('5')">5</button>
+                    <button type="button" class="numpad-btn" onclick="pinPress('6')">6</button>
                 </div>
                 <div class="numpad-row">
-                    <button class="numpad-btn" onclick="pinPress('7')">7</button>
-                    <button class="numpad-btn" onclick="pinPress('8')">8</button>
-                    <button class="numpad-btn" onclick="pinPress('9')">9</button>
+                    <button type="button" class="numpad-btn" onclick="pinPress('7')">7</button>
+                    <button type="button" class="numpad-btn" onclick="pinPress('8')">8</button>
+                    <button type="button" class="numpad-btn" onclick="pinPress('9')">9</button>
                 </div>
                 <div class="numpad-row">
-                    <button class="numpad-btn numpad-empty"></button>
-                    <button class="numpad-btn" onclick="pinPress('0')">0</button>
-                    <button class="numpad-btn numpad-back" onclick="pinBackspace()">
+                    <button type="button" class="numpad-btn numpad-empty" aria-hidden="true" tabindex="-1"></button>
+                    <button type="button" class="numpad-btn" onclick="pinPress('0')">0</button>
+                    <button type="button" class="numpad-btn numpad-back" onclick="pinBackspace()">
                         <svg width="29" height="29" viewBox="0 0 29 29" fill="none">
                             <path d="M14.1401 18.9795L16.9107 16.2089L19.6813 18.9795L21.3901 17.2707L18.6195 14.5001L21.3901 11.7295L19.6812 10.0207L16.9107 12.7912L14.1401 10.0207L12.4313 11.7295L15.2018 14.5001L12.4312 17.2707L14.1401 18.9795Z" fill="white"/>
                             <path fill-rule="evenodd" clip-rule="evenodd" d="M10.2648 4.8335C9.89404 4.8335 9.54377 5.00374 9.31469 5.2953L2.66886 13.7536C2.32459 14.1918 2.32459 14.8085 2.66886 15.2467L9.31469 23.705C9.54377 23.9966 9.89404 24.1668 10.2648 24.1668H22.9523C24.9544 24.1668 26.5773 22.5439 26.5773 20.5418V8.4585C26.5773 6.45646 24.9544 4.8335 22.9523 4.8335H10.2648ZM5.15569 14.5002L10.8521 7.25016H22.9523C23.6197 7.25016 24.1607 7.79115 24.1607 8.4585V20.5418C24.1607 21.2092 23.6197 21.7502 22.9523 21.7502H10.8521L5.15569 14.5002Z" fill="white"/>
@@ -1089,6 +1089,6 @@
 </div>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script type="module" src="app.js?v=20260914profile1"></script>
+<script defer src="app.js?v=20260915-pinfix2"></script>
 </body>
 </html>
