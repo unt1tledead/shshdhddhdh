@@ -23,6 +23,44 @@ const KEY_LEGEND   = 'gw_legend_hidden';
 const KEY_UID      = 'gw_uid';
 const KEY_PROFILE_HIDDEN = 'gw_profile_hidden';
 
+
+// ── Frontend profile adapter ─────────────────────────────────────────────
+// UI reads only from these normalized objects. Later the mock statistics can
+// be replaced with a backend response without changing profile markup.
+const PROFILE_MOCK = {
+    joinedAt: '14.09.2026',
+    registrationDate: '14.09.2026',
+    dealsCount: 0,
+    rating: null,
+    deposit: 0,
+    purchasesTotal: 0,
+    salesTotal: 0,
+    arbitrations: 0,
+    reviewsCount: 0,
+    wallCount: 0,
+    publicationsCount: 0,
+    commentsCount: 0,
+};
+
+function getCurrentUserModel() {
+    const telegramUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
+    const fallback = {
+        id: 8626531033,
+        firstName: 'unt1tledead',
+        lastName: '',
+        username: 'antonenkkovich',
+        photoUrl: null,
+    };
+    if (!telegramUser) return fallback;
+    return {
+        id: telegramUser.id ?? fallback.id,
+        firstName: telegramUser.first_name || telegramUser.username || fallback.firstName,
+        lastName: telegramUser.last_name || '',
+        username: telegramUser.username || fallback.username,
+        photoUrl: telegramUser.photo_url || null,
+    };
+}
+
 const MAX_ATTEMPTS     = 3;
 const LOCKOUT_MS       = 60 * 60 * 1000; // 1 hour
 
@@ -391,105 +429,20 @@ function getTgUser() {
 
     let _profileLoaded = false;
 
-    function renderProfileBase(data, avatarUrl) {
-        const char = (data.first_name || data.username || '?')[0].toUpperCase();
-        document.getElementById('profile-cover-char').textContent = char;
-        const hasAvatar = avatarUrl && !avatarUrl.endsWith('/no-avatar');
-
-        // Перерисовываем аватар-блок только если URL изменился — иначе мигание при двойном вызове
-        const avatarEl = document.getElementById('profile-avatar');
-        if (avatarEl.dataset.avatarUrl !== avatarUrl) {
-            avatarEl.dataset.avatarUrl = avatarUrl;
-            avatarEl.innerHTML = `
-                <div class="profile-avatar-photo-wrap">
-                    <img class="profile-avatar-photo" src="/api/assets/no-avatar" alt="avatar" />
-                </div>
-            `;
-        }
-        document.getElementById('profile-name').textContent = data.first_name || data.username || 'Аноним';
-        document.getElementById('profile-username').textContent = data.username ? `@${data.username}` : '';
-        const _pid = document.getElementById('profile-tgid');
-        if (_pid) _pid.textContent = (data.telegram_id || getTgUid()) ? `ID: ${data.telegram_id || getTgUid()}` : '';
-        const _pdesc = document.getElementById('profile-desc');
-        if (_pdesc) _pdesc.textContent = data.description || 'Нет описания';
-
-        const statusMap = { admin: 'Администратор', arbiter: 'Арбитр', moderator: 'Модератор', user: 'Пользователь' };
-        document.getElementById('profile-status-badge').textContent = statusMap[data.status] || 'Пользователь';
-
-        const rating = data.rating_count > 0 ? (data.rating_sum / data.rating_count).toFixed(1) : '0';
-        const starSvg = Number(rating) > 0
-            ? '<svg class="rating-star" width="15" height="14" viewBox="0 0 17 16" fill="none"><path d="M8.49993 1.33398C8.76619 1.33398 9.00692 1.49242 9.11223 1.73697L10.7582 5.55907L14.9019 5.94339C15.167 5.96798 15.3921 6.14796 15.4743 6.40119C15.5566 6.65442 15.4803 6.93233 15.2803 7.10806L12.1539 9.85456L13.0689 13.9142C13.1274 14.1739 13.0258 14.4436 12.8104 14.6001C12.5949 14.7566 12.3071 14.7699 12.0781 14.634L8.49993 12.5093L4.92173 14.634C4.69279 14.7699 4.40491 14.7566 4.1895 14.6001C3.97409 14.4436 3.87247 14.1739 3.93101 13.9142L4.84597 9.85456L1.71956 7.10806C1.51953 6.93233 1.44324 6.65442 1.52551 6.40119C1.60779 6.14796 1.83286 5.96798 2.09799 5.94339L6.24166 5.55907L7.88763 1.73697C7.99294 1.49242 8.23367 1.33398 8.49993 1.33398Z" fill="#FEE600"/></svg>'
-            : '<svg class="rating-star" width="15" height="14" viewBox="0 0 19 18" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M9.75 1.5C10.0495 1.5 10.3204 1.67824 10.4388 1.95335L12.2906 6.25322L16.9522 6.68558C17.2505 6.71324 17.5037 6.91573 17.5962 7.20061C17.6888 7.48549 17.603 7.79813 17.3779 7.99583L13.8607 11.0856L14.89 15.6527C14.9559 15.9449 14.8416 16.2483 14.5992 16.4244C14.3569 16.6005 14.033 16.6154 13.7755 16.4625L9.75 14.0723L5.72453 16.4625C5.46697 16.6154 5.14311 16.6005 4.90077 16.4244C4.65844 16.2483 4.5441 15.9449 4.60996 15.6527L5.63929 11.0856L2.12209 7.99583C1.89705 7.79813 1.81122 7.48549 1.90378 7.20061C1.99635 6.91573 2.24955 6.71324 2.54781 6.68558L7.20944 6.25322L9.06116 1.95335C9.17964 1.67824 9.45046 1.5 9.75 1.5ZM9.75 4.1462L8.41098 7.25554C8.3024 7.50767 8.06475 7.68033 7.7914 7.70569L4.42047 8.01833L6.96385 10.2527C7.17008 10.4338 7.26086 10.7132 7.2005 10.981L6.45617 14.2836L9.36708 12.5551C9.60312 12.415 9.89688 12.415 10.1329 12.5551L13.0438 14.2836L12.2995 10.981C12.2391 10.7132 12.3299 10.4338 12.5362 10.2527L15.0795 8.01833L11.7086 7.70569C11.4353 7.68033 11.1976 7.50767 11.089 7.25554L9.75 4.1462Z" fill="#FEE600"/></svg>';
-        document.getElementById('profile-rating').innerHTML = `${starSvg} ${rating}`;
-        document.getElementById('profile-deposit').textContent = data.deposit > 0 ? `$${Math.round(data.deposit).toLocaleString('ru-RU')}` : '0';
-        document.getElementById('profile-deals').textContent = data.total_deals || 0;
-        document.getElementById('profile-sum').textContent = data.total_sum > 0 ? `$${Math.round(data.total_sum).toLocaleString('ru-RU')}` : '$0';
-        document.getElementById('profile-rev-cnt').textContent = data.reviews_count || 0;
+    function renderProfileBase() {
+        renderOwnProfile();
     }
 
     async function loadProfile() {
-        const tgUser = getTgUser();
-        const uid = getTgUid();
-        let data = null;
-
-        if (tgUser) {
-            renderProfileBase({
-                first_name: tgUser.first_name || '',
-                username: tgUser.username || '',
-                status: 'user',
-                rating_count: 0,
-                rating_sum: 0,
-                deposit: 0,
-                total_deals: 0,
-                total_sum: 0,
-                reviews_count: 0,
-            }, uid ? `/api/assets/tg-avatar-framed/${uid}` : '/api/assets/no-avatar');
-        }
-
-        if (uid) {
-            const params = new URLSearchParams({ uid: String(uid) });
-            if (tgUser?.username) params.set('username', tgUser.username);
-            if (tgUser?.first_name) params.set('first_name', tgUser.first_name);
-            if (tgUser?.last_name) params.set('last_name', tgUser.last_name);
-            data = await apiGet(`/api/me?${params.toString()}`);
-            if (data && data.error) data = null;
-        }
-
-        if (!data && tgUser) {
-            data = {
-                first_name: tgUser.first_name || '',
-                username: tgUser.username || '',
-                status: 'user',
-                rating_count: 0,
-                rating_sum: 0,
-                deposit: 0,
-                total_deals: 0,
-                total_sum: 0,
-                reviews_count: 0,
-            };
-        }
-
-        if (!data) return;
-
-        renderProfileBase(data, uid ? `/api/assets/tg-avatar-framed/${uid}` : '/api/assets/no-avatar');
-
-        // Показываем кнопку "Админ панель" только для администраторов
-        const adminBtnWrap = document.getElementById('profile-admin-btn-wrap');
-        if (adminBtnWrap) {
-            const isAdmin = data.is_admin || data.status === 'admin' || data.status === 'moderator' || data.status === 'arbiter';
-            adminBtnWrap.style.display = isAdmin ? 'block' : 'none';
-        }
-
+        // Profile is deliberately frontend-first for now. Telegram user fields
+        // are used when available; service statistics stay as mock values until
+        // a verified backend endpoint is connected.
+        renderOwnProfile();
         _profileLoaded = true;
     }
 
     function switchProfileTab(btn, tab) {
-        document.querySelectorAll('#page-profile .tabs .tab').forEach(t => t.classList.remove('active'));
-        btn.classList.add('active');
-        const content = document.getElementById('profile-content');
-        if (tab === 'reviews') {
-            content.innerHTML = `<div class="empty-card"><p class="empty-title">Нет отзывов</p><p class="empty-sub">Отзывы появятся здесь после завершения сделок</p></div>`;
-        }
+        switchProfileRefTab(btn, tab);
     }
 
     // ══════════════════════ DEALS ═════════════════════════════════
@@ -852,6 +805,139 @@ window.selectMockChatUser = selectMockChatUser;
 window.removeMockChatUser = removeMockChatUser;
 
 
+
+// ── Own profile / publication frontend UI ───────────────────────────────
+function formatMoneyMock(value) {
+    const n = Number(value || 0);
+    return n.toLocaleString('ru-RU', { maximumFractionDigits: 2 });
+}
+
+function renderOwnProfile() {
+    const user = getCurrentUserModel();
+    const stats = PROFILE_MOCK;
+    const name = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.username || 'Пользователь';
+    const letter = (name[0] || 'U').toUpperCase();
+    const setText = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value; };
+
+    setText('profile-name', name);
+    setText('profile-username', user.username ? user.username : 'без username');
+    setText('profile-joined', stats.joinedAt);
+    setText('profile-deals', stats.dealsCount);
+    setText('profile-rating', stats.rating ?? '-');
+    setText('profile-deposit', `${formatMoneyMock(stats.deposit)} $`);
+    setText('profile-registration', stats.registrationDate);
+    setText('profile-arbitrations', stats.arbitrations);
+    setText('profile-purchases', formatMoneyMock(stats.purchasesTotal));
+    setText('profile-sales', formatMoneyMock(stats.salesTotal));
+    setText('profile-deals-stat', stats.dealsCount);
+    setText('profile-rating-stat', stats.rating ?? '-');
+    setText('profile-rev-cnt', stats.reviewsCount);
+    setText('profile-wall-cnt', stats.wallCount);
+    setText('profile-pub-cnt', stats.publicationsCount);
+    setText('profile-comments-cnt', stats.commentsCount);
+
+    const letterEl = document.getElementById('profile-avatar-letter');
+    const img = document.getElementById('profile-avatar-image');
+    if (img && letterEl) {
+        if (user.photoUrl) {
+            img.src = user.photoUrl;
+            img.hidden = false;
+            letterEl.hidden = true;
+            img.onerror = () => { img.hidden = true; letterEl.hidden = false; letterEl.textContent = letter; };
+        } else {
+            img.hidden = true;
+            letterEl.hidden = false;
+            letterEl.textContent = letter;
+        }
+    }
+}
+
+function openOwnProfile() {
+    closeProfileSheet();
+    openSubpage('profile');
+    renderOwnProfile();
+}
+
+function switchProfileRefTab(btn, tab) {
+    document.querySelectorAll('.profile-ref-tab').forEach(el => el.classList.remove('active'));
+    btn?.classList.add('active');
+    const content = document.getElementById('profile-content');
+    const text = document.getElementById('profile-empty-text');
+    if (!content || !text) return;
+    const labels = {
+        reviews: 'У пользователя не было отзывов',
+        wall: 'На стене пока нет записей',
+        publications: 'У пользователя пока нет публикаций',
+        comments: 'У пользователя пока нет комментариев',
+    };
+    text.textContent = labels[tab] || 'Здесь пока ничего нет';
+    btn?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+}
+
+function openPublicationCreate() {
+    openSubpage('publication-create');
+    document.getElementById('publication-status').textContent = '';
+}
+
+function closePublicationCreate() {
+    openSubpage('profile');
+    renderOwnProfile();
+}
+
+function togglePublicationSections() {
+    document.getElementById('publication-section-menu')?.classList.toggle('hidden');
+}
+
+function selectPublicationSection(name) {
+    const label = document.getElementById('publication-section-label');
+    if (label) label.textContent = name;
+    document.getElementById('publication-section-menu')?.classList.add('hidden');
+}
+
+function updatePublicationCounter() {
+    const body = document.getElementById('publication-body');
+    const counter = document.getElementById('publication-counter');
+    if (body && counter) counter.textContent = `${body.value.length}/12000`;
+}
+
+function renderPublicationFiles() {
+    const input = document.getElementById('publication-files');
+    const list = document.getElementById('publication-file-list');
+    if (!input || !list) return;
+    const files = Array.from(input.files || []);
+    list.innerHTML = files.map(file => `<div class="publication-file-chip"><span>${escHtml(file.name)}</span><small>${Math.max(1, Math.round(file.size / 1024))} KB</small></div>`).join('');
+}
+
+function submitPublicationMock() {
+    const title = (document.getElementById('publication-title')?.value || '').trim();
+    const body = (document.getElementById('publication-body')?.value || '').trim();
+    const section = document.getElementById('publication-section-label')?.textContent || 'Выберите раздел';
+    const status = document.getElementById('publication-status');
+    if (!status) return;
+    if (!title || !body || section === 'Выберите раздел') {
+        status.textContent = 'Заполните раздел, название и текст публикации.';
+        return;
+    }
+    status.textContent = 'Готово: это фронтенд-заглушка. Позже здесь будет POST-запрос к бэкенду.';
+}
+
+function previewPublicationMock() {
+    const title = (document.getElementById('publication-title')?.value || '').trim() || 'Без названия';
+    const status = document.getElementById('publication-status');
+    if (status) status.textContent = `Предпросмотр: «${title}». Отдельный preview подключим к данным публикации.`;
+}
+
+window.openOwnProfile = openOwnProfile;
+window.switchProfileRefTab = switchProfileRefTab;
+window.openPublicationCreate = openPublicationCreate;
+window.closePublicationCreate = closePublicationCreate;
+window.togglePublicationSections = togglePublicationSections;
+window.selectPublicationSection = selectPublicationSection;
+window.updatePublicationCounter = updatePublicationCounter;
+window.renderPublicationFiles = renderPublicationFiles;
+window.submitPublicationMock = submitPublicationMock;
+window.previewPublicationMock = previewPublicationMock;
+
 // ── Profile bottom sheet ─────────────────────────────────────────────────
 let profileSheetOpen = false;
 
@@ -879,16 +965,18 @@ function toggleProfileSheet() {
 }
 
 function loadProfileSheetData() {
-    const tgUser = getTgUser();
-    const name = tgUser?.first_name || tgUser?.username || localStorage.getItem('demo_profile_name') || 'unt1tledead';
-    const username = tgUser?.username ? '@' + tgUser.username : '';
-    const initial = (name || '?').slice(0,1).toUpperCase();
+    const user = getCurrentUserModel();
+    const name = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.username || 'Пользователь';
+    const username = user.username ? `@${user.username}` : '';
     const n = document.getElementById('profile-sheet-name');
     const u = document.getElementById('profile-sheet-username');
     const a = document.getElementById('profile-sheet-avatar');
     if (n) n.textContent = name;
     if (u) u.textContent = username;
-    if (a) a.textContent = initial;
+    if (a) {
+        if (user.photoUrl) a.innerHTML = `<img src="${escHtml(user.photoUrl)}" alt="">`;
+        else a.textContent = (name[0] || 'U').toUpperCase();
+    }
 }
 
 document.addEventListener('keydown', (e) => {

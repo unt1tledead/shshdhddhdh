@@ -355,70 +355,104 @@
         </div>
 
         <!-- ─── PROFILE PAGE ─── -->
-        <div id="page-profile" class="page">
-            <!-- Cover -->
-            <div class="profile-cover">
-                <span class="profile-cover-char" id="profile-cover-char">?</span>
-                <div class="profile-avatar-wrap">
-                    <div class="profile-avatar" id="profile-avatar"><span>?</span></div>
-                </div>
-            </div>
-
-            <!-- Name + buttons combined card -->
-            <div class="card profile-name-card profile-top-card">
-                <div class="profile-name-row">
-                    <div>
-                        <div class="profile-display-name" id="profile-name">...</div>
-                        <div class="profile-username" id="profile-username">@...</div>
-                        <div class="profile-tgid" id="profile-tgid"></div>
+        <div id="page-profile" class="page profile-ref-page">
+            <section class="profile-ref-card profile-ref-main-card">
+                <div class="profile-ref-avatar" id="profile-avatar"><span id="profile-avatar-letter">U</span><img id="profile-avatar-image" alt="" hidden></div>
+                <div class="profile-ref-identity">
+                    <div class="profile-ref-name-line">
+                        <strong id="profile-name">unt1tledead</strong><i class="profile-ref-online"></i>
                     </div>
-                    <span class="badge badge-yellow" id="profile-status-badge">Пользователь</span>
+                    <div class="profile-ref-telegram"><span class="profile-ref-plane">◢</span><span id="profile-username">@antonenkkovich</span></div>
+                    <div class="profile-ref-joined">На форуме с <span id="profile-joined">14.09.2026</span></div>
                 </div>
-                <div class="profile-desc-wrap">
-                    <div class="profile-desc-title">Описание</div>
-                    <div class="profile-desc-text" id="profile-desc">Нет описания</div>
+
+                <div class="profile-ref-details">
+                    <div><span>Количество сделок</span><b id="profile-deals">0</b></div>
+                    <div><span>Рейтинг</span><b id="profile-rating">-</b></div>
+                    <div><span>Депозит</span><b id="profile-deposit">0 $</b></div>
+                    <div><span>Регистрация</span><b id="profile-registration">14.09.2026</b></div>
+                    <div><span>Активные арбитражи (ответчик)</span><b id="profile-arbitrations">0</b></div>
                 </div>
-                <div class="profile-btn-grid" style="margin-top:14px">
-                    <button class="btn-yellow btn-span-2" onclick="openDepositMenu()">Депозит</button>
-                    <button class="btn-dark" onclick="openSettingsPage()">Настройки</button>
-                    <button class="btn-dark" onclick="showForumsInDev()">Добавить форумы</button>
+                <button class="profile-ref-yellow" type="button" onclick="openPublicationCreate()">Создать публикацию</button>
+            </section>
+
+            <section class="profile-ref-card profile-ref-deposit-card">
+                <div class="profile-ref-deposit-title">Нет депозитов</div>
+                <button class="profile-ref-yellow" type="button" onclick="openDepositMenu()">Пополнить</button>
+            </section>
+
+            <section class="profile-ref-card profile-ref-stat-wrap">
+                <div class="profile-ref-stat-grid">
+                    <div class="profile-ref-stat"><b id="profile-purchases">0</b><span>Сумма покупок, $</span></div>
+                    <div class="profile-ref-stat"><b id="profile-sales">0</b><span>Сумма продаж, $</span></div>
+                    <div class="profile-ref-stat"><b id="profile-deals-stat">0</b><span>Кол-во сделок</span></div>
+                    <div class="profile-ref-stat"><b id="profile-rating-stat">-</b><span>Рейтинг</span></div>
                 </div>
+            </section>
+
+            <div class="profile-ref-tabs" id="profile-ref-tabs">
+                <button class="profile-ref-tab active" type="button" data-profile-tab="reviews" onclick="switchProfileRefTab(this,'reviews')">Отзывы <b id="profile-rev-cnt">0</b></button>
+                <button class="profile-ref-tab" type="button" data-profile-tab="wall" onclick="switchProfileRefTab(this,'wall')">Стена <b id="profile-wall-cnt">0</b></button>
+                <button class="profile-ref-tab" type="button" data-profile-tab="publications" onclick="switchProfileRefTab(this,'publications')">Публикации <b id="profile-pub-cnt">0</b></button>
+                <button class="profile-ref-tab" type="button" data-profile-tab="comments" onclick="switchProfileRefTab(this,'comments')">Комментарии <b id="profile-comments-cnt">0</b></button>
             </div>
 
-            <!-- Stats grid -->
-            <div class="profile-stats-grid">
-                <div class="card stat-card">
-                    <div class="stat-value" id="profile-rating"><svg class="rating-star" width="15" height="14" viewBox="0 0 19 18" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M9.75 1.5C10.0495 1.5 10.3204 1.67824 10.4388 1.95335L12.2906 6.25322L16.9522 6.68558C17.2505 6.71324 17.5037 6.91573 17.5962 7.20061C17.6888 7.48549 17.603 7.79813 17.3779 7.99583L13.8607 11.0856L14.89 15.6527C14.9559 15.9449 14.8416 16.2483 14.5992 16.4244C14.3569 16.6005 14.033 16.6154 13.7755 16.4625L9.75 14.0723L5.72453 16.4625C5.46697 16.6154 5.14311 16.6005 4.90077 16.4244C4.65844 16.2483 4.5441 15.9449 4.60996 15.6527L5.63929 11.0856L2.12209 7.99583C1.89705 7.79813 1.81122 7.48549 1.90378 7.20061C1.99635 6.91573 2.24955 6.71324 2.54781 6.68558L7.20944 6.25322L9.06116 1.95335C9.17964 1.67824 9.45046 1.5 9.75 1.5ZM9.75 4.1462L8.41098 7.25554C8.3024 7.50767 8.06475 7.68033 7.7914 7.70569L4.42047 8.01833L6.96385 10.2527C7.17008 10.4338 7.26086 10.7132 7.2005 10.981L6.45617 14.2836L9.36708 12.5551C9.60312 12.415 9.89688 12.415 10.1329 12.5551L13.0438 14.2836L12.2995 10.981C12.2391 10.7132 12.3299 10.4338 12.5362 10.2527L15.0795 8.01833L11.7086 7.70569C11.4353 7.68033 11.1976 7.50767 11.089 7.25554L9.75 4.1462Z" fill="#FEE600"/></svg> 0</div>
-                    <div class="stat-label">Рейтинг</div>
-                </div>
-                <div class="card stat-card stat-card-deposit">
-                    <div class="stat-value" id="profile-deposit">0</div>
-                    <div class="stat-label">Депозит <svg width="10" height="10" viewBox="0 0 17 16" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M11.6928 8.23643L7.02612 12.9031L6.08331 11.9603L10.2786 7.76502L6.08331 3.56976L7.02612 2.62695L11.6928 7.29362C11.9531 7.55397 11.9531 7.97608 11.6928 8.23643Z" fill="#878787"/></svg></div>
-                </div>
-                <div class="card stat-card stat-card-plain">
-                    <div class="stat-value" id="profile-deals">0</div>
-                    <div class="stat-label">Сделок</div>
-                </div>
-                <div class="card stat-card stat-card-plain">
-                    <div class="stat-value" id="profile-sum">$0</div>
-                    <div class="stat-label">Сумма сделок</div>
-                </div>
-            </div>
+            <button class="profile-ref-sort" type="button">
+                <span>Сортировать по:</span>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M5 9l7 7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
 
-            <!-- Tabs: reviews -->
-            <div class="tabs tabs-1">
-                <button class="tab active" onclick="switchProfileTab(this,'reviews')">Отзывы <span class="notif-cnt" id="profile-rev-cnt">0</span></button>
-            </div>
-            <div id="profile-content">
-                <div class="empty-card">
-                    <p class="empty-title">Нет отзывов</p>
-                    <p class="empty-sub">Отзывы появятся после завершения сделок</p>
+            <section class="profile-ref-card profile-ref-empty" id="profile-content">
+                <h3>Здесь пока ничего нет</h3>
+                <p id="profile-empty-text">У пользователя не было отзывов</p>
+            </section>
+        </div>
+
+        <!-- ─── CREATE PUBLICATION PAGE ─── -->
+        <div id="page-publication-create" class="page publication-page">
+            <section class="publication-card">
+                <h2>Создание публикации</h2>
+                <p class="publication-muted">Выберите расположение публикации в каталоге форума</p>
+                <label class="publication-label">Раздел</label>
+                <div class="publication-section-picker">
+                    <button id="publication-section-trigger" class="publication-select" type="button" onclick="togglePublicationSections()">
+                        <span id="publication-section-label">Выберите раздел</span>
+                        <svg width="21" height="21" viewBox="0 0 24 24" fill="none"><path d="M5 9l7 7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                    </button>
+                    <div id="publication-section-menu" class="publication-section-menu hidden">
+                        <button type="button" onclick="selectPublicationSection('Услуги')">Услуги</button>
+                        <button type="button" onclick="selectPublicationSection('Товары')">Товары</button>
+                        <button type="button" onclick="selectPublicationSection('Другое')">Другое</button>
+                    </div>
                 </div>
+            </section>
+
+            <section class="publication-card publication-main-content">
+                <h2>Основной контент</h2>
+                <input id="publication-title" class="publication-title-input" type="text" placeholder="Введите название публикации" maxlength="160">
+                <div class="publication-editor">
+                    <div class="publication-toolbar" aria-label="Панель форматирования">
+                        <button type="button">Normal</button><button type="button">↕</button><button type="button">☰</button><button type="button">A̲</button><button type="button">A</button>
+                        <button type="button"><b>B</b></button><button type="button"><i>I</i></button><button type="button"><u>U</u></button><button type="button"><s>S</s></button><button type="button">☷</button><button type="button">☷</button><button type="button">▧</button><button type="button">↗</button><button type="button">Tₓ</button>
+                    </div>
+                    <textarea id="publication-body" maxlength="12000" oninput="updatePublicationCounter()"></textarea>
+                </div>
+                <div id="publication-counter" class="publication-counter">0/12000</div>
+
+                <div class="publication-files-block">
+                    <h2>Файлы</h2>
+                    <input id="publication-files" type="file" multiple hidden onchange="renderPublicationFiles()">
+                    <button class="publication-add-files" type="button" onclick="document.getElementById('publication-files').click()"><span>＋</span> Добавить файлы</button>
+                    <div id="publication-file-list" class="publication-file-list"></div>
+                </div>
+            </section>
+
+            <button class="profile-ref-yellow publication-create-submit" type="button" onclick="submitPublicationMock()">Создать</button>
+            <div class="publication-bottom-actions">
+                <button type="button" onclick="previewPublicationMock()">Предпросмотр</button>
+                <button type="button" onclick="closePublicationCreate()">Отменить</button>
             </div>
-            <!-- Admin panel button (only shown for admins) -->
-            <div id="profile-admin-btn-wrap" style="padding:14px;display:none">
-                <button class="btn-primary" style="width:100%" onclick="openAdminPanel()">🛠 Панель администратора</button>
-            </div>
+            <div id="publication-status" class="publication-status"></div>
         </div>
 
             <!-- ─── DEPOSIT MENU PAGE ─── -->
@@ -926,7 +960,7 @@
                 </div>
             </div>
             <div class="profile-sheet-menu">
-                <button type="button">
+                <button type="button" onclick="openOwnProfile()">
                     <svg class="profile-sheet-menu-icon" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="7" r="3.2" stroke="currentColor" stroke-width="1.8"/><path d="M5.5 20c.3-4.5 2.7-6.8 6.5-6.8s6.2 2.3 6.5 6.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
                     <b>Мой профиль</b>
                 </button>
@@ -985,6 +1019,6 @@
 </div>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script type="module" src="app.js?v=20260914d"></script>
+<script type="module" src="app.js?v=20260914profile1"></script>
 </body>
 </html>
