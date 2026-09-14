@@ -701,12 +701,30 @@ function getTgUser() {
     window.loadAdminDeals = loadAdminDeals;
 
 
+const MOCK_CHAT_USERS = [
+    { id: 1, name: 'techadmin', username: '@techadmin', role: 'Администратор', online: false },
+    { id: 2, name: 'admin', username: '@admin', role: 'Администратор', online: true },
+    { id: 3, name: 'Arbitr', username: '@ClArbitration', role: 'Арбитр', extra: '(id: 610041271)', online: true },
+    { id: 4, name: 'Lexa CL', username: '@LexaArb', role: 'Арбитр', extra: '(id: 8509230066)', online: false },
+    { id: 5, name: 'Товарищ Берия', username: '@beria', role: 'Арбитр', online: false },
+    { id: 6, name: 'Pervoklassnik', username: '@PervokLassn1kk', role: 'Арбитр', extra: '(id: 8707787185)', online: false },
+    { id: 7, name: 'tfs', username: '@tfs', role: 'Арбитр', online: false }
+];
+
+let chatCreateType = 'personal';
+let selectedChatUsers = [];
+
 function openChatCreate() {
     const list = document.getElementById('chat-list-view');
     const create = document.getElementById('chat-create-view');
     if (list) list.classList.remove('active');
     if (create) create.classList.add('active');
+    selectedChatUsers = [];
+    const search = document.getElementById('chat-user-search');
+    if (search) search.value = '';
     selectChatType('personal');
+    renderSelectedChatUsers();
+    hideChatUserDropdown();
 }
 
 function closeChatCreate() {
@@ -714,18 +732,107 @@ function closeChatCreate() {
     const create = document.getElementById('chat-create-view');
     if (create) create.classList.remove('active');
     if (list) list.classList.add('active');
+    hideChatUserDropdown();
 }
 
 function selectChatType(type) {
+    chatCreateType = type;
     const personal = document.getElementById('chat-type-personal');
     const group = document.getElementById('chat-type-group');
     const nameWrap = document.getElementById('group-name-wrap');
     const hint = document.getElementById('group-limit-hint');
+    const history = document.getElementById('chat-history-option');
     personal?.classList.toggle('active', type === 'personal');
     group?.classList.toggle('active', type === 'group');
     nameWrap?.classList.toggle('hidden', type !== 'group');
     hint?.classList.toggle('hidden', type !== 'group');
+    history?.classList.toggle('hidden', type !== 'group');
+    if (type === 'personal' && selectedChatUsers.length > 1) selectedChatUsers = selectedChatUsers.slice(0, 1);
+    renderSelectedChatUsers();
 }
+
+function showChatUserDropdown() {
+    renderChatUserDropdown(document.getElementById('chat-user-search')?.value || '');
+}
+
+function hideChatUserDropdown() {
+    document.getElementById('chat-user-dropdown')?.classList.add('hidden');
+}
+
+function filterChatUsers() {
+    renderChatUserDropdown(document.getElementById('chat-user-search')?.value || '');
+}
+
+function renderChatUserDropdown(query = '') {
+    const box = document.getElementById('chat-user-dropdown');
+    if (!box) return;
+    const q = query.trim().toLowerCase();
+    const users = MOCK_CHAT_USERS.filter(u =>
+        !selectedChatUsers.some(s => s.id === u.id) &&
+        (!q || `${u.name} ${u.username} ${u.role}`.toLowerCase().includes(q))
+    );
+    box.innerHTML = users.length ? users.map(u => `
+        <button class="chat-user-option" type="button" onclick="selectMockChatUser(${u.id})">
+            <span class="chat-user-avatar">${escHtml((u.name || '?').slice(0, 1).toUpperCase())}</span>
+            <span class="chat-user-option-main">
+                <span class="chat-user-option-name">${escHtml(u.name)} ${u.online ? '<i class="chat-online-dot"></i>' : ''} <span class="chat-user-role">${escHtml(u.role)}</span></span>
+                <span class="chat-user-option-sub">${escHtml(u.username)} ${escHtml(u.extra || '')}</span>
+            </span>
+        </button>`).join('') : '<div style="padding:14px;color:#888;text-align:center">Ничего не найдено</div>';
+    box.classList.remove('hidden');
+}
+
+function selectMockChatUser(id) {
+    const user = MOCK_CHAT_USERS.find(u => u.id === id);
+    if (!user) return;
+    if (chatCreateType === 'personal') selectedChatUsers = [user];
+    else if (!selectedChatUsers.some(u => u.id === id)) selectedChatUsers.push(user);
+    const search = document.getElementById('chat-user-search');
+    if (search) search.value = '';
+    renderSelectedChatUsers();
+    hideChatUserDropdown();
+}
+
+function removeMockChatUser(id) {
+    selectedChatUsers = selectedChatUsers.filter(u => u.id !== id);
+    renderSelectedChatUsers();
+}
+
+function renderSelectedChatUsers() {
+    const wrap = document.getElementById('chat-selected-users');
+    if (!wrap) return;
+    wrap.innerHTML = selectedChatUsers.map(u => `
+        <div class="chat-selected-user">
+            <span class="chat-user-avatar">${escHtml((u.name || '?').slice(0, 1).toUpperCase())}</span>
+            <span class="chat-selected-user-main">
+                <div class="chat-selected-user-name">${escHtml(u.name)} ${u.online ? '<i class="chat-online-dot"></i>' : ''}</div>
+                <div class="chat-selected-user-sub">${escHtml(u.username)} ${escHtml(u.extra || '')}</div>
+            </span>
+            <button class="chat-selected-remove" type="button" onclick="removeMockChatUser(${u.id})">×</button>
+        </div>`).join('');
+    updateChatCreateButton();
+}
+
+function updateChatCreateButton() {
+    const btn = document.getElementById('chat-create-submit');
+    if (!btn) return;
+    const groupName = (document.getElementById('group-chat-name')?.value || '').trim();
+    btn.disabled = chatCreateType === 'group' ? !(selectedChatUsers.length && groupName) : selectedChatUsers.length !== 1;
+}
+
+document.addEventListener('input', (e) => {
+    if (e.target?.id === 'group-chat-name') updateChatCreateButton();
+});
+
+document.addEventListener('click', (e) => {
+    const picker = document.querySelector('.chat-user-picker');
+    if (picker && !picker.contains(e.target)) hideChatUserDropdown();
+});
+
+window.showChatUserDropdown = showChatUserDropdown;
+window.filterChatUsers = filterChatUsers;
+window.selectMockChatUser = selectMockChatUser;
+window.removeMockChatUser = removeMockChatUser;
 
 // ── Search Tabs ───────────────────────────────────────────────────────────
 let currentTab = 'users';

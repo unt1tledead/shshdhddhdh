@@ -281,12 +281,21 @@
                 <div id="group-name-wrap" class="chat-field-wrap hidden">
                     <input id="group-chat-name" class="chat-create-input" type="text" placeholder="Название чата">
                 </div>
-                <div class="chat-search-users">
-                    <svg width="25" height="25" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-                    <input type="text" placeholder="Поиск пользователей">
+                <div class="chat-user-picker">
+                    <div class="chat-search-users" id="chat-user-search-wrap">
+                        <svg width="25" height="25" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                        <input id="chat-user-search" type="text" placeholder="Поиск пользователей" autocomplete="off" onfocus="showChatUserDropdown()" oninput="filterChatUsers()">
+                    </div>
+                    <div id="chat-user-dropdown" class="chat-user-dropdown hidden"></div>
                 </div>
                 <div id="group-limit-hint" class="group-limit-hint hidden">Можно добавить не более 50 пользователей в час</div>
-                <button class="chat-create-submit" disabled>Создать чат</button>
+                <div id="chat-selected-users" class="chat-selected-users"></div>
+                <label id="chat-history-option" class="chat-history-option hidden">
+                    <input type="checkbox" id="chat-history-checkbox">
+                    <span class="chat-history-box"></span>
+                    <span>Показывать новым участникам историю переписки</span>
+                </label>
+                <button id="chat-create-submit" class="chat-create-submit" disabled>Создать чат</button>
                 <button class="chat-create-back" onclick="closeChatCreate()">Назад к чатам</button>
             </div>
         </div>
