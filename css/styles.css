@@ -2284,3 +2284,74 @@ body.profile-sheet-open { overflow: hidden; }
         padding-bottom: calc(var(--nav-h) + 10px) !important;
     }
 }
+
+
+/* 2026-09-14: reference own profile + publication frontend */
+.profile-ref-page, .publication-page { padding: 0 10px 24px; }
+.profile-ref-card { background:#282828; border-radius:16px; padding:16px; margin-bottom:14px; }
+.profile-ref-main-card { padding:16px; }
+.profile-ref-avatar { height:310px; border-radius:13px; background:#383838; display:grid; place-items:center; overflow:hidden; color:#eee; font-size:58px; font-weight:500; }
+.profile-ref-avatar img { width:100%; height:100%; object-fit:cover; }
+.profile-ref-identity { padding:14px 0 8px; }
+.profile-ref-name-line { display:flex; align-items:center; gap:7px; font-size:20px; line-height:1.2; }
+.profile-ref-name-line strong { font-weight:600; }
+.profile-ref-online { width:8px; height:8px; border-radius:50%; background:#20ae74; }
+.profile-ref-telegram { margin-top:6px; color:#e4e4e4; font-size:14px; display:flex; align-items:center; gap:5px; }
+.profile-ref-plane { transform:rotate(-12deg); font-size:15px; }
+.profile-ref-joined { color:#858585; font-size:13px; margin-top:7px; }
+.profile-ref-details { display:grid; gap:6px; margin:8px 0 12px; }
+.profile-ref-details > div { display:flex; align-items:center; justify-content:space-between; gap:12px; font-size:15px; }
+.profile-ref-details span { color:#8a8a8a; }
+.profile-ref-details b { color:#f3f3f3; font-weight:500; white-space:nowrap; }
+.profile-ref-yellow { width:100%; border:0; border-radius:12px; min-height:48px; background:#ffe600; color:#151515; font-size:17px; font-weight:500; }
+.profile-ref-deposit-title { font-size:16px; margin-bottom:13px; }
+.profile-ref-stat-wrap { padding:16px; }
+.profile-ref-stat-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.profile-ref-stat { min-height:92px; border-radius:13px; background:#383838; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:8px; padding:10px; }
+.profile-ref-stat b { color:#ffe600; font-size:18px; font-weight:700; }
+.profile-ref-stat span { color:#f0f0f0; font-size:14px; }
+.profile-ref-tabs { display:flex; gap:8px; overflow-x:auto; white-space:nowrap; scrollbar-width:none; -webkit-overflow-scrolling:touch; margin:2px 0 14px; padding-bottom:2px; }
+.profile-ref-tabs::-webkit-scrollbar { display:none; }
+.profile-ref-tab { flex:0 0 auto; height:47px; padding:0 14px; border:0; border-radius:12px; background:#383838; color:#f0f0f0; font-size:15px; }
+.profile-ref-tab b { display:inline-grid; place-items:center; min-width:20px; height:20px; border-radius:6px; background:#252525; margin-left:5px; font-size:12px; }
+.profile-ref-tab.active { background:#ffe600; color:#171717; }
+.profile-ref-tab.active b { background:transparent; }
+.profile-ref-sort { width:100%; height:50px; border:0; border-radius:12px; background:#282828; color:#777; display:flex; align-items:center; justify-content:space-between; padding:0 14px; font-size:16px; margin-bottom:14px; }
+.profile-ref-empty { min-height:145px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; }
+.profile-ref-empty h3 { font-size:20px; margin:0 0 8px; }
+.profile-ref-empty p { color:#818181; margin:0; font-size:14px; }
+
+.publication-page { padding-bottom:22px; }
+.publication-card { position:relative; background:#282828; border-radius:16px; padding:16px; margin-bottom:14px; }
+.publication-card h2 { font-size:20px; margin:0 0 20px; font-weight:600; }
+.publication-muted { color:#858585; font-size:17px; line-height:1.45; margin:-3px 0 18px; }
+.publication-label { display:block; color:#888; font-size:14px; margin-bottom:8px; }
+.publication-section-picker { position:relative; }
+.publication-select { width:100%; height:52px; border:0; border-radius:12px; background:#191919; color:#7f7f7f; padding:0 14px; display:flex; align-items:center; justify-content:space-between; font-size:16px; }
+.publication-section-menu { position:absolute; left:0; right:0; top:57px; z-index:40; padding:6px; background:#333; border-radius:12px; box-shadow:0 12px 30px rgba(0,0,0,.35); }
+.publication-section-menu button { width:100%; height:42px; border:0; border-radius:9px; background:transparent; color:#eee; text-align:left; padding:0 12px; font-size:15px; }
+.publication-section-menu button:active { background:#444; }
+.publication-main-content { padding-bottom:16px; }
+.publication-title-input { width:100%; height:52px; border:0; outline:0; border-radius:12px; background:#191919; color:#eee; padding:0 14px; font:inherit; font-size:16px; margin-bottom:16px; }
+.publication-editor { border-radius:14px; background:#191919; overflow:hidden; }
+.publication-toolbar { min-height:76px; display:flex; flex-wrap:wrap; align-content:center; gap:3px; padding:10px 12px; border-bottom:1px solid #555; opacity:.48; }
+.publication-toolbar button { border:0; background:transparent; color:#aaa; min-width:31px; height:28px; font-size:16px; padding:0 4px; }
+.publication-toolbar button:first-child { min-width:74px; text-align:left; }
+.publication-editor textarea { width:100%; height:215px; resize:none; border:0; outline:0; background:transparent; color:#eee; font:inherit; padding:13px; }
+.publication-counter { color:#8a8a8a; font-size:14px; margin-top:7px; }
+.publication-files-block { border-top:1px solid #3d3d3d; margin:16px -16px -16px; padding:17px 16px 18px; }
+.publication-files-block h2 { margin-bottom:15px; }
+.publication-add-files { height:47px; border:0; border-radius:11px; background:#3a3a3a; color:#f2f2f2; padding:0 15px; font-size:16px; display:flex; align-items:center; gap:8px; }
+.publication-add-files span { font-size:26px; font-weight:300; }
+.publication-file-list { display:grid; gap:6px; margin-top:10px; }
+.publication-file-chip { border-radius:9px; background:#1b1b1b; padding:9px 11px; display:flex; justify-content:space-between; gap:10px; font-size:12px; color:#ddd; }
+.publication-file-chip small { color:#777; }
+.publication-create-submit { margin-top:2px; }
+.publication-bottom-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px; }
+.publication-bottom-actions button { height:48px; border:0; border-radius:12px; background:#383838; color:#f2f2f2; font-size:16px; }
+.publication-status { min-height:20px; color:#a5a5a5; font-size:12px; line-height:1.4; padding:9px 4px 0; }
+.profile-sheet-avatar img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
+
+@media (max-width:380px){
+  .profile-ref-avatar{height:285px}.profile-ref-stat span{font-size:13px}.profile-ref-tab{padding:0 12px}
+}
