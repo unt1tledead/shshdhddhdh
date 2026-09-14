@@ -317,6 +317,7 @@ function onAppReady() {
 
 // ── Navigation ────────────────────────────────────────────────────────────
 function navTo(pageId, btn) {
+    if (profileSheetOpen) closeProfileSheet();
     const prev = document.querySelector('.page.active');
     const next = document.getElementById(`page-${pageId}`);
     if (prev && prev === next) return;
@@ -712,14 +713,20 @@ const MOCK_CHAT_USERS = [
 ];
 
 let chatCreateType = 'personal';
-let selectedChatUsers = [];
+let personalSelectedChatUsers = [];
+let groupSelectedChatUsers = [];
+
+function getSelectedChatUsers() {
+    return chatCreateType === 'group' ? groupSelectedChatUsers : personalSelectedChatUsers;
+}
 
 function openChatCreate() {
     const list = document.getElementById('chat-list-view');
     const create = document.getElementById('chat-create-view');
     if (list) list.classList.remove('active');
     if (create) create.classList.add('active');
-    selectedChatUsers = [];
+    personalSelectedChatUsers = [];
+    groupSelectedChatUsers = [];
     const search = document.getElementById('chat-user-search');
     if (search) search.value = '';
     selectChatType('personal');
@@ -747,8 +754,8 @@ function selectChatType(type) {
     nameWrap?.classList.toggle('hidden', type !== 'group');
     hint?.classList.toggle('hidden', type !== 'group');
     history?.classList.toggle('hidden', type !== 'group');
-    if (type === 'personal' && selectedChatUsers.length > 1) selectedChatUsers = selectedChatUsers.slice(0, 1);
     renderSelectedChatUsers();
+    hideChatUserDropdown();
 }
 
 function showChatUserDropdown() {
@@ -767,6 +774,7 @@ function renderChatUserDropdown(query = '') {
     const box = document.getElementById('chat-user-dropdown');
     if (!box) return;
     const q = query.trim().toLowerCase();
+    const selectedChatUsers = getSelectedChatUsers();
     const users = MOCK_CHAT_USERS.filter(u =>
         !selectedChatUsers.some(s => s.id === u.id) &&
         (!q || `${u.name} ${u.username} ${u.role}`.toLowerCase().includes(q))
@@ -785,8 +793,11 @@ function renderChatUserDropdown(query = '') {
 function selectMockChatUser(id) {
     const user = MOCK_CHAT_USERS.find(u => u.id === id);
     if (!user) return;
-    if (chatCreateType === 'personal') selectedChatUsers = [user];
-    else if (!selectedChatUsers.some(u => u.id === id)) selectedChatUsers.push(user);
+    if (chatCreateType === 'personal') {
+        personalSelectedChatUsers = [user];
+    } else if (!groupSelectedChatUsers.some(u => u.id === id)) {
+        groupSelectedChatUsers.push(user);
+    }
     const search = document.getElementById('chat-user-search');
     if (search) search.value = '';
     renderSelectedChatUsers();
@@ -794,13 +805,18 @@ function selectMockChatUser(id) {
 }
 
 function removeMockChatUser(id) {
-    selectedChatUsers = selectedChatUsers.filter(u => u.id !== id);
+    if (chatCreateType === 'personal') {
+        personalSelectedChatUsers = personalSelectedChatUsers.filter(u => u.id !== id);
+    } else {
+        groupSelectedChatUsers = groupSelectedChatUsers.filter(u => u.id !== id);
+    }
     renderSelectedChatUsers();
 }
 
 function renderSelectedChatUsers() {
     const wrap = document.getElementById('chat-selected-users');
     if (!wrap) return;
+    const selectedChatUsers = getSelectedChatUsers();
     wrap.innerHTML = selectedChatUsers.map(u => `
         <div class="chat-selected-user">
             <span class="chat-user-avatar">${escHtml((u.name || '?').slice(0, 1).toUpperCase())}</span>
@@ -817,6 +833,7 @@ function updateChatCreateButton() {
     const btn = document.getElementById('chat-create-submit');
     if (!btn) return;
     const groupName = (document.getElementById('group-chat-name')?.value || '').trim();
+    const selectedChatUsers = getSelectedChatUsers();
     btn.disabled = chatCreateType === 'group' ? !(selectedChatUsers.length && groupName) : selectedChatUsers.length !== 1;
 }
 
@@ -833,6 +850,54 @@ window.showChatUserDropdown = showChatUserDropdown;
 window.filterChatUsers = filterChatUsers;
 window.selectMockChatUser = selectMockChatUser;
 window.removeMockChatUser = removeMockChatUser;
+
+
+// ── Profile bottom sheet ─────────────────────────────────────────────────
+let profileSheetOpen = false;
+
+function openProfileSheet() {
+    const overlay = document.getElementById('profile-sheet-overlay');
+    if (!overlay || profileSheetOpen) return;
+    profileSheetOpen = true;
+    overlay.classList.add('open');
+    overlay.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('profile-sheet-open');
+    loadProfileSheetData();
+}
+
+function closeProfileSheet() {
+    const overlay = document.getElementById('profile-sheet-overlay');
+    if (!overlay || !profileSheetOpen) return;
+    profileSheetOpen = false;
+    overlay.classList.remove('open');
+    overlay.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('profile-sheet-open');
+}
+
+function toggleProfileSheet() {
+    profileSheetOpen ? closeProfileSheet() : openProfileSheet();
+}
+
+function loadProfileSheetData() {
+    const tgUser = getTgUser();
+    const name = tgUser?.first_name || tgUser?.username || 'Пользователь';
+    const username = tgUser?.username ? '@' + tgUser.username : '';
+    const initial = (name || '?').slice(0,1).toUpperCase();
+    const n = document.getElementById('profile-sheet-name');
+    const u = document.getElementById('profile-sheet-username');
+    const a = document.getElementById('profile-sheet-avatar');
+    if (n) n.textContent = name;
+    if (u) u.textContent = username;
+    if (a) a.textContent = initial;
+}
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && profileSheetOpen) closeProfileSheet();
+});
+
+window.openProfileSheet = openProfileSheet;
+window.closeProfileSheet = closeProfileSheet;
+window.toggleProfileSheet = toggleProfileSheet;
 
 // ── Search Tabs ───────────────────────────────────────────────────────────
 let currentTab = 'users';

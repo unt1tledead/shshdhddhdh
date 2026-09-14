@@ -896,6 +896,29 @@
 
     </main>
 
+    <!-- Profile overlay: opens above the current page, not as a tab -->
+    <div id="profile-sheet-overlay" class="profile-sheet-overlay" aria-hidden="true" onclick="if(event.target===this) closeProfileSheet()">
+        <section class="profile-sheet" role="dialog" aria-modal="true" aria-label="Профиль">
+            <div class="profile-sheet-handle"></div>
+            <div class="profile-sheet-user">
+                <div id="profile-sheet-avatar" class="profile-sheet-avatar">U</div>
+                <div class="profile-sheet-user-text">
+                    <div id="profile-sheet-name" class="profile-sheet-name">Пользователь</div>
+                    <div id="profile-sheet-username" class="profile-sheet-username"></div>
+                </div>
+            </div>
+            <div class="profile-sheet-menu">
+                <button type="button"><span>♙</span><b>Мой профиль</b></button>
+                <button type="button"><span>▣</span><b>Кошелек</b><em>0.00 $</em><i>+</i></button>
+                <button type="button" onclick="closeProfileSheet(); const b=document.querySelector('.nav-deals'); if(b) navTo('deals',b)"><span>▣</span><b>Мои сделки</b></button>
+                <button type="button"><span>⚒</span><b>Арбитражи</b></button>
+                <button type="button"><span>♢</span><b>Покупка рекламы</b></button>
+                <button type="button"><span>⚙</span><b>Настройки</b></button>
+                <button type="button" class="profile-sheet-logout"><span>⇥</span><b>Выйти из аккаунта</b></button>
+            </div>
+        </section>
+    </div>
+
     <!-- Bottom Navigation -->
     <nav class="bottom-nav ref-bottom-nav">
         <button class="nav-btn active" onclick="navTo('search',this)">
@@ -914,7 +937,7 @@
             <span class="nav-chat-icon"><svg width="25" height="25" viewBox="0 0 24 24" fill="none"><path d="M4 5.8C4 4.8 4.8 4 5.8 4h12.4C19.2 4 20 4.8 20 5.8v8.4c0 1-.8 1.8-1.8 1.8H11l-4.7 3.6V16H5.8c-1 0-1.8-.8-1.8-1.8V5.8Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg><i></i></span>
             <span>Чат</span>
         </button>
-        <button class="nav-btn" onclick="navTo('profile',this)">
+        <button class="nav-btn nav-profile-trigger" onclick="toggleProfileSheet()" aria-label="Открыть профиль">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="7.2" r="3.2" stroke="currentColor" stroke-width="1.8"/><path d="M5.5 20c.3-4.5 2.7-6.8 6.5-6.8s6.2 2.3 6.5 6.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
             <span>Профиль</span>
         </button>
@@ -923,6 +946,6 @@
 </div>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script type="module" src="app.js?v=20260914b"></script>
+<script type="module" src="app.js?v=20260914c"></script>
 </body>
 </html>
