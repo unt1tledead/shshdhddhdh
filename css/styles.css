@@ -2258,3 +2258,29 @@ body.profile-sheet-open { overflow: hidden; }
 @media (max-height: 720px) {
     .profile-sheet { height: min(490px, calc(100dvh - var(--nav-h))); overflow-y: auto; }
 }
+
+/* 2026-09-14: keep bottom navigation above every overlay/sheet */
+.bottom-nav,
+.ref-bottom-nav {
+    z-index: 320 !important;
+}
+
+/* The dimming layer stays under the bottom nav. */
+.profile-sheet-overlay {
+    z-index: 190 !important;
+}
+
+/* Let the profile sheet continue behind the bottom nav instead of stopping above it. */
+.profile-sheet {
+    bottom: 0 !important;
+    height: min(calc(505px + var(--nav-h)), calc(100dvh - 12px)) !important;
+    padding-bottom: calc(var(--nav-h) + 10px) !important;
+    box-sizing: border-box;
+}
+
+@media (max-height: 720px) {
+    .profile-sheet {
+        height: min(calc(490px + var(--nav-h)), 100dvh) !important;
+        padding-bottom: calc(var(--nav-h) + 10px) !important;
+    }
+}
