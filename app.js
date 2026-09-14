@@ -1432,16 +1432,7 @@ function renderServiceList(services) {
     `).join('');
 }
 
-    // ── Deposit / Subpages ────────────────────────────────────────────────────
-
-    let _walletsData = null;
-    let _networkDropdownOpen = false;
-
-    async function loadWalletsData() {
-        if (_walletsData) return _walletsData;
-        _walletsData = await apiGet('/api/wallets');
-        return Array.isArray(_walletsData) ? _walletsData : [];
-    }
+    // ── Wallet / Deposit mock flow ──────────────────────────────────────────
 
     function openSubpage(id) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -1462,183 +1453,171 @@ function renderServiceList(services) {
         openSubpage('deposit-menu');
     }
 
-    async function openDepositIn() {
-        openSubpage('deposit-in');
-        // Reset state
-        _networkDropdownOpen = false;
-        document.getElementById('network-dropdown').classList.add('hidden');
-        document.getElementById('network-caret').classList.remove('open');
-        document.getElementById('selected-network-label').textContent = 'Выберите сеть';
-        document.getElementById('deposit-in-details').classList.add('hidden');
-        document.getElementById('deposit-in-details').innerHTML = '';
+    const WALLET_MOCK_ASSETS = ['USDT TRC20', 'TRX', 'ETH'];
+    let walletSheetMode = null;
+    let walletSelectedAsset = '';
 
-        const wallets = await loadWalletsData();
-        const dropdown = document.getElementById('network-dropdown');
-        dropdown.innerHTML = '';
-        if (!wallets.length) {
-            const opt = document.createElement('div');
-            opt.className = 'custom-select-option';
-            opt.textContent = 'Сети не загружены';
-            dropdown.appendChild(opt);
+    function walletOverlayClick(e) {
+        if (e.target?.id === 'wallet-sheet-overlay') closeWalletSheet();
+    }
+    function walletPinOverlayClick(e) {
+        if (e.target?.id === 'wallet-pin-overlay') closeWalletPin();
+    }
+    function closeWalletSheet() {
+        document.getElementById('wallet-sheet-overlay')?.classList.add('hidden');
+        walletSheetMode = null;
+        walletSelectedAsset = '';
+    }
+
+    function renderAssetPicker(title) {
+        const c = document.getElementById('wallet-sheet-content');
+        if (!c) return;
+        c.innerHTML = `
+            <h3>${escHtml(title)}</h3>
+            <div class="wallet-select-label">Выберите актив</div>
+            <div class="wallet-select" id="wallet-asset-trigger" onclick="toggleWalletAssetList()">
+                <span id="wallet-asset-label">Выберите валюту оплаты</span>
+                <span>⌄</span>
+            </div>
+            <div id="wallet-asset-list" class="wallet-select-list hidden"></div>
+            <button class="wallet-yellow-btn" type="button" onclick="continueWalletFlow()">Продолжить</button>`;
+        document.getElementById('wallet-sheet-overlay')?.classList.remove('hidden');
+    }
+
+    function openServiceTopup() {
+        walletSheetMode = 'service';
+        walletSelectedAsset = '';
+        renderAssetPicker('Пополнение баланса для услуг');
+    }
+
+    function openGuaranteeTopup() {
+        walletSheetMode = 'guarantee';
+        walletSelectedAsset = '';
+        renderAssetPicker('Пополнение гарантийного депозита');
+    }
+
+    function toggleWalletAssetList() {
+        const list = document.getElementById('wallet-asset-list');
+        if (!list) return;
+        const opening = list.classList.contains('hidden');
+        list.classList.toggle('hidden', !opening);
+        if (opening) {
+            list.innerHTML = WALLET_MOCK_ASSETS.map(a => `<div class="wallet-select-option" onclick="selectWalletAsset('${a.replace(/'/g,"\\'")}')">${escHtml(a)}</div>`).join('');
+        }
+    }
+
+    function selectWalletAsset(asset) {
+        walletSelectedAsset = asset;
+        const label = document.getElementById('wallet-asset-label');
+        if (label) label.textContent = asset;
+        document.getElementById('wallet-asset-trigger')?.classList.add('active');
+        document.getElementById('wallet-asset-list')?.classList.add('hidden');
+    }
+
+    function continueWalletFlow() {
+        if (!walletSelectedAsset) {
+            document.getElementById('wallet-asset-trigger')?.classList.add('active');
             return;
         }
-        wallets.forEach(w => {
-            const opt = document.createElement('div');
-            opt.className = 'custom-select-option';
-            opt.textContent = w.id;
-            opt.onclick = () => selectNetwork(w);
-            dropdown.appendChild(opt);
+        if (walletSheetMode === 'service') renderServiceAmountStep();
+        else renderGuaranteePlaceholder();
+    }
+
+    function renderServiceAmountStep() {
+        const c = document.getElementById('wallet-sheet-content');
+        c.innerHTML = `
+            <h3>Пополнение баланса для услуг</h3>
+            <div class="wallet-select-label">Выберите актив</div>
+            <div class="wallet-select active"><span>${escHtml(walletSelectedAsset)}</span><span>⌄</span></div>
+            <div class="wallet-amount-label">Введите сумму на которую хотите пополнить счет</div>
+            <input id="wallet-service-amount" class="wallet-amount-input" inputmode="decimal" placeholder="100 ${escHtml(walletSelectedAsset)}" oninput="updateWalletUsdHint()">
+            <div id="wallet-usd-hint" class="wallet-usd-hint">≈0.00 $</div>
+            <button class="wallet-yellow-btn" type="button" onclick="renderServicePaymentPlaceholder()">Продолжить</button>`;
+    }
+
+    function updateWalletUsdHint() {
+        const raw = document.getElementById('wallet-service-amount')?.value || '';
+        const n = Number(String(raw).replace(',', '.').replace(/[^0-9.]/g,'')) || 0;
+        const el = document.getElementById('wallet-usd-hint');
+        if (el) el.textContent = `≈${n.toFixed(2)} $`;
+    }
+
+    function renderServicePaymentPlaceholder() {
+        const amountRaw = document.getElementById('wallet-service-amount')?.value || '';
+        const n = Number(String(amountRaw).replace(',', '.').replace(/[^0-9.]/g,'')) || 0;
+        if (n <= 0) { document.getElementById('wallet-service-amount')?.focus(); return; }
+        const c = document.getElementById('wallet-sheet-content');
+        c.innerHTML = `
+            <h3>Пополнение баланса для услуг</h3>
+            <div class="wallet-placeholder-card"><strong>Пока-что тут ничего нет</strong><span>Адрес кошелька и QR-код появятся после подключения бэкенда.</span></div>
+            <div class="wallet-warning">Отправьте только ${escHtml(walletSelectedAsset)} через выбранную сеть. Любые другие активы будут потеряны.</div>
+            <div class="wallet-network-card"><div class="wallet-token">T</div><div><small>Сеть</small><b>${walletSelectedAsset === 'USDT TRC20' ? 'Tron' : escHtml(walletSelectedAsset)}</b></div></div>
+            <div class="wallet-mock-address"><label>Сумма</label><div>${escHtml(walletSelectedAsset)} ${n.toFixed(0)} · ≈${n.toFixed(2)} $</div></div>
+            <div class="wallet-mock-address"><label>Адрес кошелька</label><div>Пока-что тут ничего нет</div></div>
+            <button class="wallet-yellow-btn" type="button" onclick="closeWalletSheet()">Отменить платеж</button>`;
+    }
+
+    function renderGuaranteePlaceholder() {
+        const c = document.getElementById('wallet-sheet-content');
+        c.innerHTML = `
+            <h3>Пополнение гарантийного депозита</h3>
+            <div class="wallet-placeholder-card"><strong>Пока-что тут ничего нет</strong><span>Адрес кошелька и QR-код появятся после подключения бэкенда.</span></div>
+            <div class="wallet-warning">Отправьте только ${escHtml(walletSelectedAsset)} через выбранную сеть. Любые другие активы будут потеряны.</div>
+            <div class="wallet-network-card"><div class="wallet-token">T</div><div><small>Сеть</small><b>${walletSelectedAsset === 'USDT TRC20' ? 'Tron' : escHtml(walletSelectedAsset)}</b></div></div>
+            <div class="wallet-mock-address"><label>Адрес кошелька</label><div>Пока-что тут ничего нет</div></div>
+            <div class="wallet-minimum">Минимальная сумма пополнения: 300$ (~300 USDT TRC20)</div>
+            <button class="wallet-yellow-btn" type="button" onclick="closeWalletSheet()">Отменить</button>`;
+    }
+
+    function openGuaranteeWithdraw() {
+        walletSheetMode = 'withdraw';
+        const c = document.getElementById('wallet-sheet-content');
+        c.innerHTML = `<h3>Детали снятия</h3><div class="wallet-sheet-sub">Нет доступных депозитов для вывода</div>`;
+        document.getElementById('wallet-sheet-overlay')?.classList.remove('hidden');
+    }
+
+    function openWalletPin() {
+        closeWalletSheet();
+        const ov = document.getElementById('wallet-pin-overlay');
+        ov?.classList.remove('hidden');
+        const boxes = Array.from(document.querySelectorAll('.wallet-pin-box'));
+        boxes.forEach((b,i) => {
+            b.value='';
+            b.oninput = () => {
+                b.value = b.value.replace(/\D/g,'').slice(0,1);
+                if (b.value && boxes[i+1]) boxes[i+1].focus();
+                validateWalletPinBoxes();
+            };
+            b.onkeydown = (e) => {
+                if (e.key === 'Backspace' && !b.value && boxes[i-1]) boxes[i-1].focus();
+            };
         });
+        setTimeout(()=>boxes[0]?.focus(), 50);
+        validateWalletPinBoxes();
     }
 
-    async function openDepositOut() {
-        openSubpage('deposit-out');
-        // Загружаем актуальный баланс
-        const uid = getTgUid();
-        try {
-            const me = await fetch(`/api/me?uid=${uid}`).then(r => r.json());
-            const balance = parseFloat(me.deposit || 0).toFixed(2);
-            const balEl = document.getElementById('withdraw-balance');
-            if (balEl) balEl.textContent = `${balance} USDT`;
-            const amtEl = document.getElementById('withdraw-amount');
-            if (amtEl) amtEl.max = balance;
-        } catch (e) { console.warn('openDepositOut balance load:', e); }
-        // Загружаем историю выводов
-        loadWithdrawals();
+    function validateWalletPinBoxes() {
+        const boxes = Array.from(document.querySelectorAll('.wallet-pin-box'));
+        const done = boxes.length === 4 && boxes.every(b => /^\d$/.test(b.value));
+        const status = document.getElementById('wallet-pin-status');
+        const btn = document.getElementById('wallet-pin-confirm');
+        status?.classList.toggle('hidden', !done);
+        if (btn) btn.disabled = !done;
     }
 
-    async function loadWithdrawals() {
-        const uid = getTgUid();
-        try {
-            const rows = await fetch(`/api/withdrawals?uid=${uid}`).then(r => r.json());
-            const container = document.getElementById('withdraw-history-list');
-            if (!container) return;
-            if (!Array.isArray(rows) || rows.length === 0) {
-                container.innerHTML = '<p class="withdraw-empty">Нет заявок на вывод</p>';
-                return;
-            }
-            const statusLabel = { pending: '⏳ В обработке', completed: '✅ Завершён', failed: '❌ Отклонён' };
-            container.innerHTML = rows.map(r => `
-                <div class="withdraw-history-item">
-                    <div class="whi-row">
-                        <span class="whi-amount">${parseFloat(r.amount).toFixed(2)} ${escHtml(r.currency)}</span>
-                        <span class="whi-status whi-${escHtml(r.status)}">${statusLabel[r.status] || r.status}</span>
-                    </div>
-                    <div class="whi-meta">
-                        <span class="whi-network">${escHtml(r.network)}</span>
-                        <span class="whi-addr">${escHtml(r.address)}</span>
-                    </div>
-                    <div class="whi-date">${new Date(r.created_at).toLocaleString('ru')}</div>
-                </div>
-            `).join('');
-        } catch (e) { console.warn('loadWithdrawals:', e); }
+    function closeWalletPin() {
+        document.getElementById('wallet-pin-overlay')?.classList.add('hidden');
     }
 
-    async function submitWithdrawal() {
-        const uid = getTgUid();
-        const amount = parseFloat(document.getElementById('withdraw-amount')?.value || 0);
-        const network = document.getElementById('withdraw-network')?.value?.trim() || '';
-        const address = document.getElementById('withdraw-address')?.value?.trim() || '';
-        const btn = document.getElementById('withdraw-submit-btn');
-
-        if (!amount || amount <= 0) { alert('Введите корректную сумму'); return; }
-        if (!network) { alert('Выберите сеть'); return; }
-        if (!address) { alert('Введите адрес'); return; }
-
-        if (btn) { btn.disabled = true; btn.textContent = 'Отправка…'; }
-        try {
-            const resp = await fetch('/api/withdrawals/create', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ uid, amount, currency: 'USDT', network, address }),
-            });
-            const data = await resp.json();
-            if (data.ok) {
-                alert(`✅ Заявка на вывод #${data.withdrawal_id} принята!\nОбработка займёт некоторое время.`);
-                // Сбросить форму
-                if (document.getElementById('withdraw-amount')) document.getElementById('withdraw-amount').value = '';
-                if (document.getElementById('withdraw-address')) document.getElementById('withdraw-address').value = '';
-                // Обновить баланс и историю
-                openDepositOut();
-            } else {
-                alert(`❌ Ошибка: ${data.error || 'Попробуйте ещё раз'}`);
-            }
-        } catch (e) {
-            alert('❌ Ошибка сети');
-        } finally {
-            if (btn) { btn.disabled = false; btn.textContent = 'Вывести'; }
-        }
+    function confirmGuaranteeWithdraw() {
+        closeWalletPin();
+        if (tg?.showAlert) tg.showAlert('Заглушка: вывод будет подключён через бэкенд.');
+        else alert('Заглушка: вывод будет подключён через бэкенд.');
     }
 
-    function toggleNetworkDropdown() {
-        _networkDropdownOpen = !_networkDropdownOpen;
-        document.getElementById('network-dropdown').classList.toggle('hidden', !_networkDropdownOpen);
-        document.getElementById('network-caret').classList.toggle('open', _networkDropdownOpen);
-    }
-
-    function selectNetwork(wallet) {
-        _networkDropdownOpen = false;
-        document.getElementById('network-dropdown').classList.add('hidden');
-        document.getElementById('network-caret').classList.remove('open');
-        document.getElementById('selected-network-label').textContent = wallet.id;
-
-        const details = document.getElementById('deposit-in-details');
-        details.classList.remove('hidden');
-        details.innerHTML = `
-            <div class="card deposit-qr-card">
-                <img class="deposit-qr-img"
-                     src="/api/assets/qr/${escHtml(wallet.qr)}"
-                     alt="QR ${escHtml(wallet.id)}"
-                     onerror="this.style.opacity='0.2'"/>
-                <p class="deposit-qr-warn">Отправьте только ${escHtml(wallet.id)} через выбранную сеть.<br>Любые другие активы будут потеряны.</p>
-                <p class="deposit-qr-info">Минимальный депозит — от 300 долларов.<br>Депозит не служит для оплаты сделок.</p>
-                <div class="deposit-addr-block">
-                    <div class="deposit-addr-label">Адрес кошелька</div>
-                    <div class="deposit-addr-wrap">
-                        <span class="deposit-addr-text" id="deposit-addr-text">${escHtml(wallet.address)}</span>
-                        <button class="deposit-addr-copy" onclick="copyDepositAddr()" title="Копировать">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                                <rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="2"/>
-                                <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="currentColor" stroke-width="2"/>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-                <div class="deposit-autocheck">
-                    <svg class="deposit-autocheck-icon" width="18" height="18" viewBox="0 0 24 24" fill="none">
-                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                        <path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
-                    <div class="deposit-autocheck-text">Автопроверка активна.<br>Уведомления о пополнениях приходят автоматически</div>
-                </div>
-                <button class="btn-dark deposit-check-btn" onclick="checkDepositManual()">Проверить</button>
-            </div>
-        `;
-    }
-
-    function copyDepositAddr() {
-        const addr = document.getElementById('deposit-addr-text')?.textContent;
-        if (!addr) return;
-        if (navigator.clipboard) {
-            navigator.clipboard.writeText(addr).then(() => {
-                const btn = document.querySelector('.deposit-addr-copy');
-                if (btn) {
-                    btn.style.color = 'var(--accent-bright)';
-                    setTimeout(() => { btn.style.color = ''; }, 1500);
-                }
-            }).catch(() => {});
-        }
-    }
-
-    async function checkDepositManual() {
-        const btn = document.querySelector('.deposit-check-btn');
-        if (btn) { btn.disabled = true; btn.textContent = 'Проверяем...'; }
-        const uid = getTgUid();
-        const res = await apiGet(`/api/deposits/check?uid=${uid}`);
-        if (btn) { btn.disabled = false; btn.textContent = 'Проверить'; }
-        const msg = res?.credited ? `Зачислено: +${res.credited} USDT` : (рестатус || 'Новых пополнений не найдено');
-        if (tg?.showAlert) tg.showAlert(msg); else alert(msg);
-    }
+    // Compatibility with older handlers.
+    function openDepositIn(){ openServiceTopup(); }
+    function openDepositOut(){ openGuaranteeWithdraw(); }
 
 // ── User tap ──────────────────────────────────────────────────────────────
 function openUser(id) {

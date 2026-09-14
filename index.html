@@ -530,101 +530,67 @@
             </div>
         </div>
 
-            <!-- ─── DEPOSIT MENU PAGE ─── -->
-            <div id="page-deposit-menu" class="page">
-                <button class="subpage-back-btn" onclick="goBackToProfile()">
-                    <svg width="17" height="16" viewBox="0 0 17 16" fill="none">
-                        <path d="M16.0834 7.99984H0.916748M0.916748 7.99984L7.58342 14.6665M0.916748 7.99984L7.58342 1.33317" stroke="currentColor" stroke-width="1.67" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </button>
-                <div class="deposit-menu-list">
-                    <div class="card deposit-menu-item" onclick="openDepositIn()">
-                        <div class="deposit-menu-item-text">
-                            <div class="deposit-menu-item-title">Внести депозит</div>
-                            <div class="deposit-menu-item-sub">Пополните баланс через выбранную сеть и валюту</div>
-                        </div>
-                        <svg class="deposit-menu-item-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none">
-                            <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
+            <!-- ─── WALLET / DEPOSIT PAGE ─── -->
+            <div id="page-deposit-menu" class="page wallet-page-ref">
+                <section class="wallet-summary-card">
+                    <div class="wallet-summary-watermark">★</div>
+                    <div class="wallet-label">Баланс для услуг:</div>
+                    <div class="wallet-service-balance">0.00 $</div>
+                    <div class="wallet-help">Служит для оплаты рекламы, автоподнятия публикаций, смены никнейма и других платных функций форума</div>
+                    <div class="wallet-label wallet-space">Средства в гаранте:</div>
+                    <div class="wallet-normal-value">0.00 $</div>
+                    <button class="wallet-yellow-btn" type="button" onclick="openServiceTopup()">Пополнить баланс для услуг</button>
+
+                    <div class="wallet-label wallet-space-lg">Гарантийный депозит:</div>
+                    <div class="wallet-guarantee-empty" id="wallet-guarantee-state">
+                        <div class="wallet-normal-value">У вас нет депозитов</div>
+                        <div class="wallet-help">Сумма финансового обеспечения профиля.<br>Отображается для всех пользователей форума</div>
                     </div>
-                    <div class="card deposit-menu-item" onclick="openDepositOut()">
-                        <div class="deposit-menu-item-text">
-                            <div class="deposit-menu-item-title">Вывести депозит</div>
-                            <div class="deposit-menu-item-sub">Запросите вывод средств</div>
-                        </div>
-                        <svg class="deposit-menu-item-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none">
-                            <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </div>
+                    <button class="wallet-yellow-btn" type="button" onclick="openGuaranteeTopup()">Пополнить гарантийный депозит</button>
+                    <button class="wallet-dark-btn" type="button" onclick="openGuaranteeWithdraw()">Вывести гарантийный депозит</button>
+                </section>
+
+                <section class="wallet-empty-card wallet-deals-card">
+                    <h2>Сделки в Гаранте</h2>
+                    <div class="wallet-empty-center"><b>Здесь пока ничего нет</b><span>Нет сделок</span></div>
+                </section>
+
+                <section class="wallet-empty-card wallet-history-card">
+                    <h2>История транзакций</h2>
+                    <div class="wallet-empty-center"><b>Здесь пока ничего нет</b><span>Здесь будет отображаться ваша история транзакций</span></div>
+                </section>
+            </div>
+
+            <!-- legacy deposit pages kept for compatibility; hidden from current flow -->
+            <div id="page-deposit-in" class="page"></div>
+            <div id="page-deposit-out" class="page"></div>
+
+            <!-- ─── WALLET BOTTOM SHEETS ─── -->
+            <div id="wallet-sheet-overlay" class="wallet-sheet-overlay hidden" onclick="walletOverlayClick(event)">
+                <div id="wallet-sheet" class="wallet-sheet" onclick="event.stopPropagation()">
+                    <button class="wallet-sheet-close" type="button" onclick="closeWalletSheet()">×</button>
+                    <div id="wallet-sheet-content"></div>
                 </div>
             </div>
 
-            <!-- ─── DEPOSIT IN PAGE ─── -->
-            <div id="page-deposit-in" class="page">
-                <button class="subpage-back-btn" onclick="openSubpage('deposit-menu')">
-                    <svg width="17" height="16" viewBox="0 0 17 16" fill="none">
-                        <path d="M16.0834 7.99984H0.916748M0.916748 7.99984L7.58342 14.6665M0.916748 7.99984L7.58342 1.33317" stroke="currentColor" stroke-width="1.67" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </button>
-                <h2 class="deposit-page-title">Пополнение депозита</h2>
-                <div class="card deposit-select-card">
-                    <div class="deposit-select-label">Сеть</div>
-                    <div class="custom-select-wrap" id="network-select-wrap">
-                        <div class="custom-select-trigger" id="network-select-trigger" onclick="toggleNetworkDropdown()">
-                            <span id="selected-network-label"></span>
-                            <svg class="custom-select-caret" id="network-caret" width="18" height="18" viewBox="0 0 24 24" fill="none">
-                                <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
+            <div id="wallet-pin-overlay" class="wallet-sheet-overlay hidden" onclick="walletPinOverlayClick(event)">
+                <div class="wallet-sheet wallet-pin-sheet" onclick="event.stopPropagation()">
+                    <button class="wallet-sheet-close" type="button" onclick="closeWalletPin()">×</button>
+                    <h3>Введите PIN-код</h3>
+                    <p class="wallet-sheet-sub">Для закрытия страхового депозита введите PIN-код</p>
+                    <div class="wallet-pin-card">
+                        <div class="wallet-pin-caption">Введите ваш PIN-код</div>
+                        <div class="wallet-pin-boxes">
+                            <input inputmode="numeric" maxlength="1" class="wallet-pin-box" aria-label="PIN 1">
+                            <input inputmode="numeric" maxlength="1" class="wallet-pin-box" aria-label="PIN 2">
+                            <input inputmode="numeric" maxlength="1" class="wallet-pin-box" aria-label="PIN 3">
+                            <input inputmode="numeric" maxlength="1" class="wallet-pin-box" aria-label="PIN 4">
                         </div>
-                        <div class="custom-select-dropdown hidden" id="network-dropdown"></div>
+                        <div id="wallet-pin-status" class="wallet-pin-status hidden">PIN-код подтверждён</div>
                     </div>
-                </div>
-                <div id="deposit-in-details" class="hidden"></div>
-            </div>
-
-            <!-- ─── DEPOSIT OUT PAGE ─── -->
-            <div id="page-deposit-out" class="page">
-                <button class="subpage-back-btn" onclick="openSubpage('deposit-menu')">
-                    <svg width="17" height="16" viewBox="0 0 17 16" fill="none">
-                        <path d="M16.0834 7.99984H0.916748M0.916748 7.99984L7.58342 14.6665M0.916748 7.99984L7.58342 1.33317" stroke="currentColor" stroke-width="1.67" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </button>
-                <div class="card deposit-out-header-card">
-                    <div class="deposit-out-title">Вывод средств</div>
-                    <div class="deposit-out-balance-row">
-                        <span class="deposit-out-balance-label">Доступный баланс:</span>
-                        <span class="deposit-out-balance-val" id="withdraw-balance">0.00 USDT</span>
-                    </div>
-                </div>
-
-                <div class="card deposit-out-form-card">
-                    <div class="form-group">
-                        <label class="form-label">Сеть</label>
-                        <select class="form-select" id="withdraw-network">
-                            <option value="">— Выберите сеть —</option>
-                            <option value="TRC20">USDT TRC20 (TRON)</option>
-                            <option value="ERC20">USDT ERC20 (Ethereum)</option>
-                            <option value="BEP20">USDT BEP20 (BSC)</option>
-                            <option value="SOL">USDT SOL (Solana)</option>
-                            <option value="Bitcoin">Bitcoin (BTC)</option>
-                            <option value="Litecoin">Litecoin (LTC)</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Адрес кошелька</label>
-                        <input class="form-input" id="withdraw-address" type="text" placeholder="Введите адрес получателя" autocomplete="off" />
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Сумма (USDT)</label>
-                        <input class="form-input" id="withdraw-amount" type="number" min="1" step="0.01" placeholder="0.00" />
-                    </div>
-                    <button class="btn-primary withdraw-submit-btn" id="withdraw-submit-btn" onclick="submitWithdrawal()">Вывести</button>
-                </div>
-
-                <div class="card deposit-out-history-card">
-                    <div class="deposit-out-history-title">История заявок</div>
-                    <div id="withdraw-history-list">
-                        <p class="withdraw-empty">Загрузка…</p>
+                    <div class="wallet-pin-actions">
+                        <button id="wallet-pin-confirm" class="wallet-yellow-btn wallet-pin-confirm" type="button" disabled onclick="confirmGuaranteeWithdraw()">Подтвердить</button>
+                        <button class="wallet-dark-btn" type="button" onclick="closeWalletPin()">Закрыть</button>
                     </div>
                 </div>
             </div>
