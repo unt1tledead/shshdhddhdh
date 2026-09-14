@@ -880,7 +880,7 @@ function toggleProfileSheet() {
 
 function loadProfileSheetData() {
     const tgUser = getTgUser();
-    const name = tgUser?.first_name || tgUser?.username || 'Пользователь';
+    const name = tgUser?.first_name || tgUser?.username || localStorage.getItem('demo_profile_name') || 'unt1tledead';
     const username = tgUser?.username ? '@' + tgUser.username : '';
     const initial = (name || '?').slice(0,1).toUpperCase();
     const n = document.getElementById('profile-sheet-name');

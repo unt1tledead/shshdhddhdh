@@ -82,7 +82,26 @@
 
     <!-- Fixed Header -->
     <header class="app-header">
+        <button class="header-action header-menu" type="button" aria-label="Меню">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+            </svg>
+        </button>
         <img class="header-logo" src="icons/8.svg" alt="GW Garant">
+        <div class="header-actions-right">
+            <button class="header-action" type="button" aria-label="Уведомления">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M6.8 9.8c0-3.2 2-5.3 5.2-5.3s5.2 2.1 5.2 5.3v3.1l1.6 2.2H5.2l1.6-2.2V9.8Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                    <path d="M9.7 18c.5.9 1.2 1.4 2.3 1.4s1.8-.5 2.3-1.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+            </button>
+            <button class="header-action" type="button" aria-label="Поиск">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <circle cx="10.5" cy="10.5" r="6.2" stroke="currentColor" stroke-width="1.8"/>
+                    <path d="m15.3 15.3 4.2 4.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+            </button>
+        </div>
     </header>
 
     <!-- Scrollable Content -->
@@ -899,22 +918,42 @@
     <!-- Profile overlay: opens above the current page, not as a tab -->
     <div id="profile-sheet-overlay" class="profile-sheet-overlay" aria-hidden="true" onclick="if(event.target===this) closeProfileSheet()">
         <section class="profile-sheet" role="dialog" aria-modal="true" aria-label="Профиль">
-            <div class="profile-sheet-handle"></div>
             <div class="profile-sheet-user">
                 <div id="profile-sheet-avatar" class="profile-sheet-avatar">U</div>
                 <div class="profile-sheet-user-text">
-                    <div id="profile-sheet-name" class="profile-sheet-name">Пользователь</div>
+                    <div id="profile-sheet-name" class="profile-sheet-name">unt1tledead</div>
                     <div id="profile-sheet-username" class="profile-sheet-username"></div>
                 </div>
             </div>
             <div class="profile-sheet-menu">
-                <button type="button"><span>♙</span><b>Мой профиль</b></button>
-                <button type="button"><span>▣</span><b>Кошелек</b><em>0.00 $</em><i>+</i></button>
-                <button type="button" onclick="closeProfileSheet(); const b=document.querySelector('.nav-deals'); if(b) navTo('deals',b)"><span>▣</span><b>Мои сделки</b></button>
-                <button type="button"><span>⚒</span><b>Арбитражи</b></button>
-                <button type="button"><span>♢</span><b>Покупка рекламы</b></button>
-                <button type="button"><span>⚙</span><b>Настройки</b></button>
-                <button type="button" class="profile-sheet-logout"><span>⇥</span><b>Выйти из аккаунта</b></button>
+                <button type="button">
+                    <svg class="profile-sheet-menu-icon" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="7" r="3.2" stroke="currentColor" stroke-width="1.8"/><path d="M5.5 20c.3-4.5 2.7-6.8 6.5-6.8s6.2 2.3 6.5 6.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                    <b>Мой профиль</b>
+                </button>
+                <button type="button">
+                    <svg class="profile-sheet-menu-icon" viewBox="0 0 24 24" fill="none"><path d="M4 7.2h13.5a2.5 2.5 0 0 1 2.5 2.5v7.1a2.2 2.2 0 0 1-2.2 2.2H4V7.2Z" stroke="currentColor" stroke-width="1.8"/><path d="M4 7.2V5.8A1.8 1.8 0 0 1 5.8 4h10.7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M16 11h4v4h-4a2 2 0 0 1 0-4Z" stroke="currentColor" stroke-width="1.8"/></svg>
+                    <b>Кошелек</b><em>0.00 $</em><i>+</i>
+                </button>
+                <button type="button" onclick="closeProfileSheet(); const b=document.querySelector('.nav-deals'); if(b) navTo('deals',b)">
+                    <svg class="profile-sheet-menu-icon" viewBox="0 0 24 24" fill="none"><rect x="5" y="6" width="14" height="14" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M9 6V4.7C9 3.8 9.7 3 10.7 3h2.6c1 0 1.7.8 1.7 1.7V6M12 9v8M14.3 11.1c0-1-1-1.6-2.3-1.6s-2.3.6-2.3 1.6c0 2.4 4.6 1.2 4.6 3.6 0 1-1 1.8-2.3 1.8s-2.3-.8-2.3-1.8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                    <b>Мои сделки</b>
+                </button>
+                <button type="button">
+                    <svg class="profile-sheet-menu-icon" viewBox="0 0 24 24" fill="none"><path d="m5 18 5.3-5.3M13.7 9.3 19 4M4 15l5 5M15 4l5 5M8.5 8.5 15.5 15.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="m5.8 4.8 2.8 2.8-3.2 3.2-2.8-2.8 3.2-3.2ZM18.2 13.2l2.8 2.8-3.2 3.2-2.8-2.8 3.2-3.2Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+                    <b>Арбитражи</b>
+                </button>
+                <button type="button">
+                    <svg class="profile-sheet-menu-icon" viewBox="0 0 24 24" fill="none"><path d="M4.5 13.5 10 8l6 6-5.5 5.5L4.5 13.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="m12.8 5.2 2.4-2.4M16.5 7.5h3.4M10.5 3.5V1.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                    <b>Покупка рекламы</b>
+                </button>
+                <button type="button">
+                    <svg class="profile-sheet-menu-icon" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8"/><path d="M12 3.4v2M12 18.6v2M20.6 12h-2M5.4 12h-2M18.1 5.9l-1.4 1.4M7.3 16.7l-1.4 1.4M18.1 18.1l-1.4-1.4M7.3 7.3 5.9 5.9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                    <b>Настройки</b>
+                </button>
+                <button type="button" class="profile-sheet-logout">
+                    <svg class="profile-sheet-menu-icon" viewBox="0 0 24 24" fill="none"><path d="M10 4H5.5A1.5 1.5 0 0 0 4 5.5v13A1.5 1.5 0 0 0 5.5 20H10" stroke="currentColor" stroke-width="1.8"/><path d="M13 8l4 4-4 4M8 12h9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    <b>Выйти из аккаунта</b>
+                </button>
             </div>
         </section>
     </div>
@@ -946,6 +985,6 @@
 </div>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script type="module" src="app.js?v=20260914c"></script>
+<script type="module" src="app.js?v=20260914d"></script>
 </body>
 </html>
