@@ -2172,3 +2172,89 @@ body.profile-sheet-open { overflow: hidden; }
     .profile-sheet { max-height: calc(100dvh - 105px); }
     .profile-sheet-user { min-height: 126px; }
 }
+
+/* 2026-09-14: reference alignment fixes */
+:root { --header-h: 70px; }
+
+.app-header {
+    background: #282828;
+    padding-left: 12px;
+    padding-right: 12px;
+    justify-content: center;
+}
+.header-logo { height: 46px; }
+.header-action {
+    width: 42px;
+    height: 42px;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    color: #858585;
+    display: grid;
+    place-items: center;
+}
+.header-menu { position: absolute; left: 10px; bottom: 14px; }
+.header-actions-right {
+    position: absolute;
+    right: 8px;
+    bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 1px;
+}
+
+/* Keep page titles below the fixed header instead of under it. */
+.app-main { padding-top: 18px; }
+
+/* Profile is a compact overlay panel, not a full page / full-height drawer. */
+.profile-sheet {
+    height: min(505px, calc(100dvh - var(--nav-h) - 12px));
+    max-height: none;
+    overflow-y: hidden;
+    background: #282828;
+    border-radius: 18px 18px 0 0;
+    padding: 8px 8px 10px;
+    opacity: 1;
+}
+.profile-sheet-handle { display: none !important; }
+.profile-sheet-user {
+    min-height: 138px;
+    border-radius: 16px;
+    background: #1b1b1b;
+    gap: 8px;
+    margin-bottom: 7px;
+}
+.profile-sheet-avatar {
+    width: 66px;
+    height: 66px;
+    font-size: 30px;
+    background: #444;
+}
+.profile-sheet-name { font-size: 18px; line-height: 1.15; }
+.profile-sheet-username:empty { display: none; }
+.profile-sheet-menu { gap: 0; }
+.profile-sheet-menu button {
+    min-height: 48px;
+    grid-template-columns: 33px 1fr auto auto;
+    gap: 8px;
+    padding: 0 11px;
+}
+.profile-sheet-menu-icon {
+    width: 25px;
+    height: 25px;
+    color: #8f8f8f;
+}
+.profile-sheet-menu button > span { display: none; }
+.profile-sheet-menu button b { font-size: 16px; font-weight: 500; }
+.profile-sheet-menu button em { font-size: 16px; }
+.profile-sheet-menu button i {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    font-size: 28px;
+}
+.profile-sheet-logout { margin-top: 0; }
+
+@media (max-height: 720px) {
+    .profile-sheet { height: min(490px, calc(100dvh - var(--nav-h))); overflow-y: auto; }
+}
