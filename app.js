@@ -815,6 +815,7 @@ function formatMoneyMock(value) {
 function renderOwnProfile() {
     const user = getCurrentUserModel();
     const stats = PROFILE_MOCK;
+    stats.publicationsCount = getMockPublications().length;
     const name = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.username || 'Пользователь';
     const letter = (name[0] || 'U').toUpperCase();
     const setText = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value; };
@@ -858,7 +859,18 @@ function openOwnProfile() {
     renderOwnProfile();
 }
 
+let _profileRefTab = 'reviews';
+let _profileSort = '';
+let _publicationAlignIndex = 0;
+const PUBLICATION_STORAGE_KEY = 'gw_mock_publications';
+
+function getMockPublications() {
+    try { return JSON.parse(localStorage.getItem(PUBLICATION_STORAGE_KEY) || '[]'); }
+    catch (_) { return []; }
+}
+
 function switchProfileRefTab(btn, tab) {
+    _profileRefTab = tab;
     document.querySelectorAll('.profile-ref-tab').forEach(el => el.classList.remove('active'));
     btn?.classList.add('active');
     const content = document.getElementById('profile-content');
@@ -872,32 +884,170 @@ function switchProfileRefTab(btn, tab) {
     };
     text.textContent = labels[tab] || 'Здесь пока ничего нет';
     btn?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    renderProfileTabContent();
+}
+
+function renderProfileTabContent() {
+    const content = document.getElementById('profile-content');
+    if (!content) return;
+    if (_profileRefTab !== 'publications') return;
+    const pubs = getMockPublications();
+    if (!pubs.length) return;
+    const sorted = [...pubs].sort((a,b) => _profileSort === 'new' ? b.createdAt-a.createdAt : 0);
+    content.innerHTML = `<div class="profile-publication-list">${sorted.map(pub => `
+        <article class="profile-publication-item">
+            <div class="profile-publication-section">${escHtml(pub.section)}</div>
+            <h3>${escHtml(pub.title)}</h3>
+            <div class="profile-publication-date">${escHtml(pub.dateLabel)}</div>
+            <div class="profile-publication-snippet">${escHtml(pub.plainText).slice(0,180)}</div>
+        </article>`).join('')}</div>`;
+}
+
+function toggleProfileSort() {
+    const menu = document.getElementById('profile-sort-menu');
+    const caret = document.getElementById('profile-sort-caret');
+    if (!menu) return;
+    const willOpen = menu.classList.contains('hidden');
+    closeFloatingMenus('profile-sort-menu');
+    menu.classList.toggle('hidden', !willOpen);
+    caret?.classList.toggle('open', willOpen);
+}
+
+function selectProfileSort(value, label) {
+    _profileSort = value;
+    const labelEl = document.getElementById('profile-sort-label');
+    if (labelEl) labelEl.textContent = label;
+    document.getElementById('profile-sort-menu')?.classList.add('hidden');
+    document.getElementById('profile-sort-caret')?.classList.remove('open');
+    renderProfileTabContent();
 }
 
 function openPublicationCreate() {
     openSubpage('publication-create');
-    document.getElementById('publication-status').textContent = '';
+    const status = document.getElementById('publication-status');
+    if (status) status.textContent = '';
 }
 
 function closePublicationCreate() {
+    closePublicationPreview();
     openSubpage('profile');
     renderOwnProfile();
 }
 
 function togglePublicationSections() {
-    document.getElementById('publication-section-menu')?.classList.toggle('hidden');
+    const menu = document.getElementById('publication-section-menu');
+    const trigger = document.getElementById('publication-section-trigger');
+    if (!menu) return;
+    const willOpen = menu.classList.contains('hidden');
+    closeFloatingMenus('publication-section-menu');
+    menu.classList.toggle('hidden', !willOpen);
+    trigger?.classList.toggle('open', willOpen);
 }
 
 function selectPublicationSection(name) {
     const label = document.getElementById('publication-section-label');
     if (label) label.textContent = name;
     document.getElementById('publication-section-menu')?.classList.add('hidden');
+    document.getElementById('publication-section-trigger')?.classList.remove('open');
+}
+
+function publicationBodyEl() {
+    return document.getElementById('publication-body');
 }
 
 function updatePublicationCounter() {
-    const body = document.getElementById('publication-body');
+    const body = publicationBodyEl();
     const counter = document.getElementById('publication-counter');
-    if (body && counter) counter.textContent = `${body.value.length}/12000`;
+    if (!body || !counter) return;
+    let text = body.innerText || '';
+    if (text.length > 12000) {
+        const selection = window.getSelection();
+        body.innerText = text.slice(0,12000);
+        text = body.innerText;
+        try {
+            const range = document.createRange();
+            range.selectNodeContents(body); range.collapse(false);
+            selection.removeAllRanges(); selection.addRange(range);
+        } catch (_) {}
+    }
+    counter.textContent = `${text.length}/12000`;
+}
+
+function focusPublicationEditor() {
+    const editor = publicationBodyEl();
+    if (editor) editor.focus({preventScroll:true});
+}
+
+function formatPublication(command, value = null) {
+    focusPublicationEditor();
+    try { document.execCommand(command, false, value); } catch (_) {}
+    updatePublicationCounter();
+}
+
+function togglePublicationFormatMenu() {
+    const menu = document.getElementById('publication-format-menu');
+    if (!menu) return;
+    const willOpen = menu.classList.contains('hidden');
+    closeFloatingMenus('publication-format-menu');
+    menu.classList.toggle('hidden', !willOpen);
+}
+
+function setPublicationBlock(tag, label) {
+    focusPublicationEditor();
+    try { document.execCommand('formatBlock', false, tag); } catch (_) {}
+    const trigger = document.getElementById('publication-format-trigger');
+    if (trigger) trigger.textContent = label;
+    document.getElementById('publication-format-menu')?.classList.add('hidden');
+    updatePublicationCounter();
+}
+
+function cyclePublicationAlign(btn) {
+    const commands = ['justifyLeft','justifyCenter','justifyRight'];
+    const glyphs = ['☰','≡','☷'];
+    _publicationAlignIndex = (_publicationAlignIndex + 1) % commands.length;
+    formatPublication(commands[_publicationAlignIndex]);
+    if (btn) btn.textContent = glyphs[_publicationAlignIndex];
+}
+
+function applyPublicationColor() {
+    const choices = ['#f0f0f0','#ffe600','#7cc7ff','#85e08a'];
+    const editor = publicationBodyEl();
+    const current = Number(editor?.dataset.colorIndex || 0);
+    const next = (current + 1) % choices.length;
+    if (editor) editor.dataset.colorIndex = String(next);
+    formatPublication('foreColor', choices[next]);
+}
+
+function applyPublicationHighlight() {
+    const choices = ['transparent','#5a5200','#404040','#24384d'];
+    const editor = publicationBodyEl();
+    const current = Number(editor?.dataset.highlightIndex || 0);
+    const next = (current + 1) % choices.length;
+    if (editor) editor.dataset.highlightIndex = String(next);
+    formatPublication('hiliteColor', choices[next]);
+}
+
+function insertPublicationLink() {
+    const url = window.prompt('Введите ссылку');
+    if (!url) return;
+    formatPublication('createLink', url);
+}
+
+function insertPublicationImage() {
+    document.getElementById('publication-inline-image')?.click();
+}
+
+function handlePublicationInlineImage(input) {
+    const file = input?.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+        focusPublicationEditor();
+        try { document.execCommand('insertImage', false, reader.result); } catch (_) {}
+        input.value = '';
+        updatePublicationCounter();
+    };
+    reader.readAsDataURL(file);
 }
 
 function renderPublicationFiles() {
@@ -908,35 +1058,155 @@ function renderPublicationFiles() {
     list.innerHTML = files.map(file => `<div class="publication-file-chip"><span>${escHtml(file.name)}</span><small>${Math.max(1, Math.round(file.size / 1024))} KB</small></div>`).join('');
 }
 
-function submitPublicationMock() {
+function getPublicationDraft() {
     const title = (document.getElementById('publication-title')?.value || '').trim();
-    const body = (document.getElementById('publication-body')?.value || '').trim();
-    const section = document.getElementById('publication-section-label')?.textContent || 'Выберите раздел';
+    const editor = publicationBodyEl();
+    const plainText = (editor?.innerText || '').trim();
+    const bodyHtml = editor?.innerHTML || '';
+    const section = (document.getElementById('publication-section-label')?.textContent || '').trim();
+    return {title, plainText, bodyHtml, section};
+}
+
+function validatePublicationDraft(showMessage = true) {
+    const draft = getPublicationDraft();
     const status = document.getElementById('publication-status');
-    if (!status) return;
-    if (!title || !body || section === 'Выберите раздел') {
-        status.textContent = 'Заполните раздел, название и текст публикации.';
-        return;
-    }
-    status.textContent = 'Готово: это фронтенд-заглушка. Позже здесь будет POST-запрос к бэкенду.';
+    const ok = draft.title && draft.plainText && draft.section && draft.section !== 'Выберите раздел';
+    if (!ok && showMessage && status) status.textContent = 'Заполните раздел, название и текст публикации.';
+    return ok ? draft : null;
+}
+
+function saveMockPublication(draft) {
+    const pubs = getMockPublications();
+    const now = new Date();
+    const dateLabel = now.toLocaleDateString('ru-RU') + ' · ' + now.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+    pubs.unshift({ id: Date.now(), ...draft, createdAt: Date.now(), dateLabel });
+    localStorage.setItem(PUBLICATION_STORAGE_KEY, JSON.stringify(pubs));
+    PROFILE_MOCK.publicationsCount = pubs.length;
+    return pubs[0];
+}
+
+function resetPublicationForm() {
+    const title = document.getElementById('publication-title');
+    const body = publicationBodyEl();
+    const label = document.getElementById('publication-section-label');
+    const files = document.getElementById('publication-files');
+    if (title) title.value = '';
+    if (body) body.innerHTML = '';
+    if (label) label.textContent = 'Выберите раздел';
+    if (files) files.value = '';
+    const fileList = document.getElementById('publication-file-list');
+    if (fileList) fileList.innerHTML = '';
+    updatePublicationCounter();
+}
+
+function submitPublicationMock() {
+    const draft = validatePublicationDraft(true);
+    if (!draft) return;
+    saveMockPublication(draft);
+    resetPublicationForm();
+    openSubpage('profile');
+    renderOwnProfile();
+    const tab = document.querySelector('[data-profile-tab="publications"]');
+    if (tab) switchProfileRefTab(tab, 'publications');
 }
 
 function previewPublicationMock() {
-    const title = (document.getElementById('publication-title')?.value || '').trim() || 'Без названия';
-    const status = document.getElementById('publication-status');
-    if (status) status.textContent = `Предпросмотр: «${title}». Отдельный preview подключим к данным публикации.`;
+    const draft = validatePublicationDraft(true);
+    if (!draft) return;
+    const overlay = document.getElementById('publication-preview-overlay');
+    const user = getCurrentUserModel();
+    const name = [user.firstName,user.lastName].filter(Boolean).join(' ') || user.username || 'Пользователь';
+    const avatar = document.getElementById('publication-preview-avatar');
+    if (avatar) {
+        if (user.photoUrl) avatar.innerHTML = `<img src="${escHtml(user.photoUrl)}" alt="">`;
+        else avatar.textContent = (name[0] || 'U').toUpperCase();
+    }
+    const nameEl = document.getElementById('publication-preview-name');
+    if (nameEl) nameEl.textContent = name;
+    const titleEl = document.getElementById('publication-preview-title');
+    if (titleEl) titleEl.textContent = draft.title;
+    const bodyEl = document.getElementById('publication-preview-body');
+    if (bodyEl) bodyEl.innerHTML = draft.bodyHtml;
+    const now = new Date();
+    const dateEl = document.getElementById('publication-preview-date');
+    if (dateEl) dateEl.textContent = now.toLocaleDateString('ru-RU') + ' · ' + now.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+    if (overlay) {
+        overlay.classList.add('open');
+        overlay.setAttribute('aria-hidden','false');
+        document.body.classList.add('publication-preview-open');
+    }
 }
+
+function closePublicationPreview() {
+    const overlay = document.getElementById('publication-preview-overlay');
+    if (overlay) {
+        overlay.classList.remove('open');
+        overlay.setAttribute('aria-hidden','true');
+    }
+    document.body.classList.remove('publication-preview-open');
+}
+
+function publishPublicationFromPreview() {
+    const draft = validatePublicationDraft(false);
+    if (!draft) { closePublicationPreview(); return; }
+    saveMockPublication(draft);
+    closePublicationPreview();
+    resetPublicationForm();
+    openSubpage('profile');
+    renderOwnProfile();
+    const tab = document.querySelector('[data-profile-tab="publications"]');
+    if (tab) switchProfileRefTab(tab, 'publications');
+}
+
+function closeFloatingMenus(exceptId = '') {
+    ['profile-sort-menu','publication-section-menu','publication-format-menu'].forEach(id => {
+        if (id !== exceptId) document.getElementById(id)?.classList.add('hidden');
+    });
+    if (exceptId !== 'profile-sort-menu') document.getElementById('profile-sort-caret')?.classList.remove('open');
+    if (exceptId !== 'publication-section-menu') document.getElementById('publication-section-trigger')?.classList.remove('open');
+}
+
+document.addEventListener('pointerdown', (event) => {
+    if (event.target.closest('.publication-toolbar button')) event.preventDefault();
+});
+
+document.addEventListener('click', (event) => {
+    if (!event.target.closest('.profile-ref-sort-wrap')) {
+        document.getElementById('profile-sort-menu')?.classList.add('hidden');
+        document.getElementById('profile-sort-caret')?.classList.remove('open');
+    }
+    if (!event.target.closest('.publication-section-picker')) {
+        document.getElementById('publication-section-menu')?.classList.add('hidden');
+        document.getElementById('publication-section-trigger')?.classList.remove('open');
+    }
+    if (!event.target.closest('.publication-toolbar')) {
+        document.getElementById('publication-format-menu')?.classList.add('hidden');
+    }
+});
 
 window.openOwnProfile = openOwnProfile;
 window.switchProfileRefTab = switchProfileRefTab;
+window.toggleProfileSort = toggleProfileSort;
+window.selectProfileSort = selectProfileSort;
 window.openPublicationCreate = openPublicationCreate;
 window.closePublicationCreate = closePublicationCreate;
 window.togglePublicationSections = togglePublicationSections;
 window.selectPublicationSection = selectPublicationSection;
 window.updatePublicationCounter = updatePublicationCounter;
+window.formatPublication = formatPublication;
+window.togglePublicationFormatMenu = togglePublicationFormatMenu;
+window.setPublicationBlock = setPublicationBlock;
+window.cyclePublicationAlign = cyclePublicationAlign;
+window.applyPublicationColor = applyPublicationColor;
+window.applyPublicationHighlight = applyPublicationHighlight;
+window.insertPublicationLink = insertPublicationLink;
+window.insertPublicationImage = insertPublicationImage;
+window.handlePublicationInlineImage = handlePublicationInlineImage;
 window.renderPublicationFiles = renderPublicationFiles;
 window.submitPublicationMock = submitPublicationMock;
 window.previewPublicationMock = previewPublicationMock;
+window.closePublicationPreview = closePublicationPreview;
+window.publishPublicationFromPreview = publishPublicationFromPreview;
 
 // ── Profile bottom sheet ─────────────────────────────────────────────────
 let profileSheetOpen = false;

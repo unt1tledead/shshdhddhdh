@@ -397,10 +397,17 @@
                 <button class="profile-ref-tab" type="button" data-profile-tab="comments" onclick="switchProfileRefTab(this,'comments')">Комментарии <b id="profile-comments-cnt">0</b></button>
             </div>
 
-            <button class="profile-ref-sort" type="button">
-                <span>Сортировать по:</span>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M5 9l7 7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </button>
+            <div class="profile-ref-sort-wrap">
+                <button id="profile-sort-trigger" class="profile-ref-sort" type="button" onclick="toggleProfileSort()">
+                    <span id="profile-sort-label">Сортировать по:</span>
+                    <svg id="profile-sort-caret" width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M5 9l7 7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+                <div id="profile-sort-menu" class="profile-ref-sort-menu hidden">
+                    <button type="button" onclick="selectProfileSort('rating-asc','По рейтингу (возрастание)')">По рейтингу (возрастание)</button>
+                    <button type="button" onclick="selectProfileSort('rating-desc','По рейтингу (убывание)')">По рейтингу (убывание)</button>
+                    <button type="button" onclick="selectProfileSort('new','Сначала новые')">Сначала новые</button>
+                </div>
+            </div>
 
             <section class="profile-ref-card profile-ref-empty" id="profile-content">
                 <h3>Здесь пока ничего нет</h3>
@@ -420,9 +427,18 @@
                         <svg width="21" height="21" viewBox="0 0 24 24" fill="none"><path d="M5 9l7 7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
                     </button>
                     <div id="publication-section-menu" class="publication-section-menu hidden">
-                        <button type="button" onclick="selectPublicationSection('Услуги')">Услуги</button>
-                        <button type="button" onclick="selectPublicationSection('Товары')">Товары</button>
-                        <button type="button" onclick="selectPublicationSection('Другое')">Другое</button>
+                        <button type="button" onclick="selectPublicationSection('О нас')">О нас</button>
+                        <button type="button" onclick="selectPublicationSection('Обналичка')">Обналичка</button>
+                        <button type="button" onclick="selectPublicationSection('Обмен и Миксеры')">Обмен и Миксеры</button>
+                        <button type="button" onclick="selectPublicationSection('SIM,Телефония,Базы')">SIM,Телефония,Базы</button>
+                        <button type="button" onclick="selectPublicationSection('Документы и верификации')">Документы и верификации</button>
+                        <button type="button" onclick="selectPublicationSection('Цифровые товары и услуги')">Цифровые товары и услуги</button>
+                        <button type="button" onclick="selectPublicationSection('Скуп-сервисы')">Скуп-сервисы</button>
+                        <button type="button" onclick="selectPublicationSection('Пробив и поиск')">Пробив и поиск</button>
+                        <button type="button" onclick="selectPublicationSection('IT-услуги')">IT-услуги</button>
+                        <button type="button" onclick="selectPublicationSection('Торговый раздел')">Торговый раздел</button>
+                        <button type="button" onclick="selectPublicationSection('Обучения и раздачи')">Обучения и раздачи</button>
+                        <button type="button" onclick="selectPublicationSection('Оффтоп и флуд')">Оффтоп и флуд</button>
                     </div>
                 </div>
             </section>
@@ -432,10 +448,28 @@
                 <input id="publication-title" class="publication-title-input" type="text" placeholder="Введите название публикации" maxlength="160">
                 <div class="publication-editor">
                     <div class="publication-toolbar" aria-label="Панель форматирования">
-                        <button type="button">Normal</button><button type="button">↕</button><button type="button">☰</button><button type="button">A̲</button><button type="button">A</button>
-                        <button type="button"><b>B</b></button><button type="button"><i>I</i></button><button type="button"><u>U</u></button><button type="button"><s>S</s></button><button type="button">☷</button><button type="button">☷</button><button type="button">▧</button><button type="button">↗</button><button type="button">Tₓ</button>
+                        <button id="publication-format-trigger" class="publication-format-trigger" type="button" onclick="togglePublicationFormatMenu()">Normal</button>
+                        <button type="button" title="Выровнять" onclick="cyclePublicationAlign(this)">☰</button>
+                        <button type="button" title="Цвет текста" onclick="applyPublicationColor()">A̲</button>
+                        <button type="button" title="Выделение" onclick="applyPublicationHighlight()">A</button>
+                        <button type="button" title="Жирный" onclick="formatPublication('bold')"><b>B</b></button>
+                        <button type="button" title="Курсив" onclick="formatPublication('italic')"><i>I</i></button>
+                        <button type="button" title="Подчёркивание" onclick="formatPublication('underline')"><u>U</u></button>
+                        <button type="button" title="Зачёркивание" onclick="formatPublication('strikeThrough')"><s>S</s></button>
+                        <button type="button" title="Нумерованный список" onclick="formatPublication('insertOrderedList')">1≡</button>
+                        <button type="button" title="Маркированный список" onclick="formatPublication('insertUnorderedList')">•≡</button>
+                        <button type="button" title="Вставить изображение" onclick="insertPublicationImage()">▧</button>
+                        <button type="button" title="Вставить ссылку" onclick="insertPublicationLink()">↗</button>
+                        <button type="button" title="Очистить форматирование" onclick="formatPublication('removeFormat')">Tₓ</button>
+                        <div id="publication-format-menu" class="publication-format-menu hidden">
+                            <button type="button" onclick="setPublicationBlock('p','Normal')">Normal</button>
+                            <button type="button" onclick="setPublicationBlock('h2','Заголовок')">Заголовок</button>
+                            <button type="button" onclick="setPublicationBlock('h3','Подзаголовок')">Подзаголовок</button>
+                            <button type="button" onclick="setPublicationBlock('blockquote','Цитата')">Цитата</button>
+                        </div>
                     </div>
-                    <textarea id="publication-body" maxlength="12000" oninput="updatePublicationCounter()"></textarea>
+                    <div id="publication-body" class="publication-body-editor" contenteditable="true" role="textbox" aria-multiline="true" data-placeholder="Введите текст публикации" oninput="updatePublicationCounter()"></div>
+                    <input id="publication-inline-image" type="file" accept="image/*" hidden onchange="handlePublicationInlineImage(this)">
                 </div>
                 <div id="publication-counter" class="publication-counter">0/12000</div>
 
@@ -453,6 +487,31 @@
                 <button type="button" onclick="closePublicationCreate()">Отменить</button>
             </div>
             <div id="publication-status" class="publication-status"></div>
+        </div>
+
+        <div id="publication-preview-overlay" class="publication-preview-overlay" aria-hidden="true">
+            <div class="publication-preview-scroll">
+                <section class="publication-preview-user-card">
+                    <div id="publication-preview-avatar" class="publication-preview-avatar">U</div>
+                    <div class="publication-preview-user-info">
+                        <div class="publication-preview-name"><span id="publication-preview-name">Пользователь</span><i></i></div>
+                        <div class="publication-preview-badges"><span>$0</span><span>☆ -</span><span>▣ 0</span></div>
+                    </div>
+                </section>
+                <section class="publication-preview-card">
+                    <div class="publication-preview-note">Версия на модерации находится в "Истории"</div>
+                    <h2 id="publication-preview-title"></h2>
+                    <div id="publication-preview-date" class="publication-preview-date"></div>
+                    <div id="publication-preview-body" class="publication-preview-body"></div>
+                </section>
+            </div>
+            <div class="publication-preview-actions">
+                <div class="publication-preview-caption">Вы находитесь в режиме предпросмотра.<br>Публикация ещё не сохранена и видна только вам</div>
+                <div class="publication-preview-buttons">
+                    <button class="publish" type="button" onclick="publishPublicationFromPreview()">Опубликовать</button>
+                    <button type="button" onclick="closePublicationPreview()">Вернуться</button>
+                </div>
+            </div>
         </div>
 
             <!-- ─── DEPOSIT MENU PAGE ─── -->
