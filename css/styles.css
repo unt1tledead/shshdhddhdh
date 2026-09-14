@@ -160,6 +160,10 @@ html, body {
 
 .numpad-btn {
     background: transparent;
+    touch-action: manipulation;
+    pointer-events: auto;
+    -webkit-user-select: none;
+    user-select: none;
     border: none;
     border-radius: var(--radius);
     color: var(--text);
@@ -2449,3 +2453,13 @@ body.publication-preview-open{overflow:hidden}
   .publication-rules-text{max-height:470px;font-size:13.5px}
   .publication-section-menu button{font-size:15px}
 }
+
+
+/* PIN keypad interaction hardening */
+#pin-screen { z-index: 1000; }
+#pin-screen.hidden { display: none !important; }
+#pin-screen .pin-container,
+#pin-screen .pin-card,
+#pin-screen .numpad-card,
+#pin-screen .numpad { position: relative; pointer-events: auto; }
+#pin-screen .numpad-btn:not(:disabled) { pointer-events: auto; }
