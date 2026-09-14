@@ -2463,3 +2463,12 @@ body.publication-preview-open{overflow:hidden}
 #pin-screen .numpad-card,
 #pin-screen .numpad { position: relative; pointer-events: auto; }
 #pin-screen .numpad-btn:not(:disabled) { pointer-events: auto; }
+
+/* Screenshot-accurate publication validation */
+.publication-field-error,.publication-rules-error{display:none;color:#ff5157;font-size:15px;line-height:1.15;margin-top:6px}
+.publication-rules-error{font-size:15px;margin-top:16px;max-width:310px}
+.publication-select.validation-error,.publication-title-input.validation-error{border-color:#e45157!important;outline-color:#e45157!important}
+.publication-editor.validation-error{outline:1px solid #e45157}
+.publication-field-error.visible,.publication-rules-error.visible{display:block}
+.publication-rules-accept.validation-error{color:#ff5157}
+.publication-rules-card.validation-error{border-color:#d5c62c}
