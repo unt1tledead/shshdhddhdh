@@ -2883,3 +2883,97 @@ body.publication-preview-open{overflow:hidden}
     .arb-status-dropdown { width: min(300px, calc(100vw - 36px)); }
     .arb-sort-dropdown { right: 0; left: auto; width: min(190px, calc(100vw - 36px)); }
 }
+
+/* ══════════════════════ ADVERTISING PURCHASE UI ══════════════════════ */
+#page-ads { padding: 10px 12px 26px; overflow: visible; }
+.ads-page-head { margin-bottom: 6px; }
+.ads-tabs { display:flex; gap:22px; align-items:flex-end; margin: 0 0 18px; border-bottom:1px solid transparent; }
+.ads-tab { position:relative; border:0; background:transparent; color:#818181; font:inherit; font-size:15px; font-weight:600; padding:10px 0 12px; white-space:nowrap; }
+.ads-tab.active { color:#f4f4f4; }
+.ads-tab.active::after { content:""; position:absolute; left:0; right:0; bottom:0; height:2px; border-radius:2px; background:#ffe500; }
+.ads-pane { display:none; }
+.ads-pane.active { display:block; }
+.ad-card { background:#272727; border-radius:15px; padding:18px 16px; box-sizing:border-box; }
+.ad-step-card > h3:first-child { margin:0 0 18px; font-size:18px; line-height:1.25; }
+.ad-step-title { margin:14px 0 14px; font-size:16px; }
+.ad-progress { display:flex; align-items:center; width:100%; margin:8px 0 20px; }
+.ad-progress-node { flex:0 0 42px; width:42px; height:42px; border:2px solid #414141; color:#454545; border-radius:50%; display:grid; place-items:center; font-size:17px; font-weight:700; box-sizing:border-box; }
+.ad-progress-node.active { border-color:#ffe500; background:#ffe500; color:#141414; }
+.ad-progress-node.done { border-color:#ffe500; color:#ffe500; background:transparent; font-size:24px; font-weight:400; }
+.ad-progress-line { flex:1 1 auto; height:2px; background:#414141; margin:0 9px; }
+.ad-progress-line.on { background:#e5d000; }
+.ad-field-label { display:block; margin:17px 0 9px; color:#f5f5f5; font-size:16px; font-weight:700; }
+.ad-field-label-normal { font-weight:400; line-height:1.4; }
+.ad-select-wrap { position:relative; }
+.ad-select { appearance:none; -webkit-appearance:none; width:100%; height:53px; border:1px solid transparent; border-radius:12px; background:#1b1b1b; color:#efefef; padding:0 48px 0 12px; font:inherit; font-size:16px; outline:0; }
+.ad-select:focus { border-color:#e6d400; }
+.ad-select-wrap.has-error .ad-select { border-color:#ef5350; }
+.ad-select-arrow { pointer-events:none; position:absolute; right:14px; top:50%; transform:translateY(-54%); color:#7d7d7d; font-size:23px; line-height:1; }
+.ad-help { color:#8b8b8b; font-size:13px; line-height:1.45; margin:10px 0 0; }
+.ad-help-top { margin-top:14px; }
+.ad-empty-select { margin-top:0; padding:18px 14px; background:#252525; color:#838383; border-radius:0 0 12px 12px; }
+.ad-form-error { color:#ff5b5b; margin:10px 0 2px; font-size:13px; line-height:1.35; }
+.ad-yellow-btn,.ad-gray-btn { width:100%; min-height:54px; border:0; border-radius:12px; font:inherit; font-size:18px; margin-top:14px; }
+.ad-yellow-btn { background:#ffe500; color:#111; }
+.ad-gray-btn { background:#373737; color:#efefef; }
+.ad-gray-btn:disabled { color:#7f7f7f; background:#333; opacity:.72; }
+.ad-duration-list { display:grid; gap:10px; }
+.ad-duration { width:100%; min-height:87px; border:1px solid transparent; border-radius:14px; background:#353535; color:#888; display:grid; grid-template-columns:38px 1fr auto; align-items:center; gap:12px; padding:14px 16px; text-align:left; }
+.ad-duration.active { border-color:#e4d200; }
+.ad-radio { width:24px; height:24px; border:2px solid #616161; border-radius:50%; display:grid; place-items:center; box-sizing:border-box; flex:0 0 auto; }
+.ad-radio i { width:12px; height:12px; border-radius:50%; background:#575757; }
+.ad-duration.active .ad-radio, .ad-radio.selected { border-color:#ffe500; }
+.ad-duration.active .ad-radio i, .ad-radio.selected i { background:#555; }
+.ad-duration-label { font-size:15px; }
+.ad-duration-price { text-align:right; color:#ffe500; font-size:16px; font-weight:700; white-space:nowrap; }
+.ad-duration-price small { display:block; color:#8d8d8d; font-size:12px; font-weight:400; margin-top:8px; }
+.ad-upload-title-row { display:flex; justify-content:space-between; align-items:flex-start; gap:14px; margin:16px 0 0; }
+.ad-upload-title-row h3 { margin:0; font-size:16px; line-height:1.3; }
+.ad-upload-title-row b { color:#ffe500; font-size:15px; white-space:nowrap; }
+.ad-upload-box { min-height:132px; border:2px dashed #505050; border-radius:12px; margin:14px 0 18px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; padding:12px; text-align:center; overflow:hidden; position:relative; }
+.ad-upload-box input { position:absolute; inset:0; opacity:0; width:100%; height:100%; cursor:pointer; }
+.ad-upload-box .ad-upload-icon { color:#ffe500; font-size:28px; line-height:1; }
+.ad-upload-box strong { font-size:15px; font-weight:400; word-break:break-word; }
+.ad-upload-box small { color:#858585; }
+.ad-upload-box img { max-width:100%; max-height:120px; object-fit:contain; border-radius:8px; }
+.ad-radio-row { display:flex; gap:12px; align-items:center; font-size:15px; line-height:1.35; margin:13px 0; cursor:pointer; }
+.ad-input { width:100%; height:53px; border:1px solid transparent; border-radius:12px; background:#1b1b1b; color:#eee; padding:0 12px; box-sizing:border-box; font:inherit; font-size:16px; outline:none; }
+.ad-input:focus { border-color:#e6d400; }
+.ad-input-hint { color:#8b8b8b; font-size:12px; margin:5px 0 2px; }
+.ad-preview-title { margin:14px 0 6px; font-size:17px; line-height:1.3; }
+.ad-summary-line { display:flex; justify-content:space-between; align-items:center; gap:12px; margin:20px 0 10px; font-size:16px; }
+.ad-summary-line strong { color:#ffe500; }
+.ad-summary-card { min-height:56px; margin-top:12px; border-radius:12px; background:#353535; display:grid; grid-template-columns:1fr auto; align-items:center; gap:8px; padding:13px 16px; font-size:15px; box-sizing:border-box; }
+.ad-summary-card b { font-size:16px; }
+.ad-total-card { grid-template-columns:1fr auto; }
+.ad-history-empty { min-height:180px; border-radius:15px; background:#272727; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; gap:8px; padding:20px; color:#8c8c8c; }
+.ad-history-empty b { color:#f4f4f4; font-size:20px; }
+.ad-history-item { border-radius:14px; background:#292929; padding:14px; margin-bottom:10px; display:grid; grid-template-columns:1fr auto; gap:8px 12px; }
+.ad-history-item>div { display:flex; flex-direction:column; gap:4px; }
+.ad-history-item span,.ad-history-item small { color:#8f8f8f; }
+.ad-history-side { text-align:right; }
+.ad-history-side strong { color:#ffe500; }
+.ad-history-item small { grid-column:1 / -1; }
+.ad-preview-overlay { position:fixed; inset:0; z-index:1000; background:rgba(0,0,0,.72); display:flex; align-items:center; justify-content:center; padding:18px; }
+.ad-preview-overlay.hidden { display:none; }
+.ad-preview-modal { width:min(440px,100%); max-height:82vh; overflow:auto; background:#292929; border-radius:18px; padding:18px; position:relative; }
+.ad-preview-modal h3 { margin:0 36px 16px 0; }
+.ad-preview-close { position:absolute; top:10px; right:12px; border:0; background:transparent; color:#8d8d8d; font-size:34px; line-height:1; }
+.ad-preview-grid { display:grid; gap:12px; }
+.ad-preview-grid>div { background:#1b1b1b; border-radius:12px; padding:10px; }
+.ad-preview-grid small { display:block; color:#8b8b8b; margin-bottom:7px; }
+.ad-preview-grid img { display:block; max-width:100%; max-height:280px; object-fit:contain; margin:auto; border-radius:8px; }
+.ad-preview-meta { display:flex; flex-direction:column; gap:5px; margin-top:14px; }
+.ad-preview-meta span { color:#8b8b8b; }
+.ad-preview-meta strong { color:#ffe500; font-size:18px; }
+.ad-token-fallback { width:100%; height:100%; border-radius:50%; background:#444; color:#fff; display:grid; place-items:center; font-weight:700; }
+
+@media (max-width:390px) {
+    #page-ads { padding-left:10px; padding-right:10px; }
+    .ads-tabs { gap:18px; }
+    .ads-tab { font-size:14px; }
+    .ad-card { padding:16px 14px; }
+    .ad-progress-node { width:38px; height:38px; flex-basis:38px; }
+    .ad-progress-line { margin:0 6px; }
+    .ad-duration { grid-template-columns:34px 1fr auto; padding:12px; gap:9px; }
+}
