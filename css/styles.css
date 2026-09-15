@@ -2829,3 +2829,57 @@ body.publication-preview-open{overflow:hidden}
     .auth-seed-grid { gap:9px 54px; }
     .auth-switch-line { font-size:16px; }
 }
+
+
+/* ══════════════════════ ARBITRATIONS REFERENCE UI ══════════════════════ */
+#page-arbitrations { padding: 10px 12px 20px; overflow: visible; }
+.arbitration-page .ref-page-head { padding-bottom: 12px; }
+.arb-segment { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 224px; margin-bottom: 14px; }
+.arb-control-grid {
+    display: grid;
+    grid-template-columns: 138px minmax(180px, 278px);
+    gap: 8px;
+    align-items: start;
+    margin-bottom: 10px;
+    position: relative;
+    z-index: 45;
+}
+.arb-control-box { position: relative; min-width: 0; }
+.arb-control-label { display: block; color: #858585; font-size: 13px; margin: 0 0 6px 1px; }
+.arb-select-btn {
+    width: 100%; height: 49px; border: 0; border-radius: 12px; padding: 0 12px;
+    background: #292929; color: #efefef; display: flex; align-items: center;
+    justify-content: space-between; gap: 9px; box-sizing: border-box;
+}
+.arb-select-btn b { font-size: 15px; font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.arb-select-btn svg { color: #757575; flex: 0 0 auto; transition: transform .18s ease; }
+.arb-select-btn.open { outline: 1px solid #f1d800; color: #f3f3f3; }
+.arb-select-btn.open svg.open { transform: rotate(180deg); }
+.arb-dropdown {
+    position: absolute; top: 70px; left: 0; z-index: 150;
+    background: #292929; border-radius: 12px; box-shadow: 0 12px 30px rgba(0,0,0,.42);
+    padding: 4px 0; overflow-y: auto; overscroll-behavior: contain;
+    scrollbar-width: thin; scrollbar-color: #5e5e5e transparent;
+}
+.arb-dropdown::-webkit-scrollbar { width: 4px; }
+.arb-dropdown::-webkit-scrollbar-thumb { background: #5e5e5e; border-radius: 4px; }
+.arb-status-dropdown { width: min(300px, calc(100vw - 36px)); max-height: 212px; }
+.arb-sort-dropdown { width: min(190px, calc(100vw - 36px)); max-height: 212px; }
+.arb-dropdown button {
+    width: calc(100% - 12px); min-height: 44px; margin: 0 6px; padding: 0 11px;
+    border: 0; border-radius: 8px; background: transparent; color: #8c8c8c;
+    text-align: left; font: inherit; font-size: 15px; line-height: 1.25;
+}
+.arb-dropdown button.active { color: #ffe500; }
+.arb-dropdown button:active, .arb-dropdown button:hover { background: #383838; }
+.arb-empty-card {
+    min-height: 130px; border-radius: 15px; background: #272727; display: flex;
+    align-items: center; justify-content: center; text-align: center; padding: 22px 14px;
+    position: relative; z-index: 1;
+}
+@media (max-width: 390px) {
+    .arb-control-grid { grid-template-columns: 136px minmax(0, 1fr); }
+    .arb-segment { max-width: none; }
+    .arb-status-dropdown { width: min(300px, calc(100vw - 36px)); }
+    .arb-sort-dropdown { right: 0; left: auto; width: min(190px, calc(100vw - 36px)); }
+}
