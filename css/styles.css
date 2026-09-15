@@ -2745,3 +2745,10 @@ body.publication-preview-open{overflow:hidden}
 /* Network logos: use image assets instead of text currency symbols. */
 .wallet-token{overflow:hidden;background:transparent!important;padding:0}
 .wallet-token img{width:100%;height:100%;display:block;object-fit:contain}
+
+.wallet-copy-field{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.wallet-copy-field>div{min-width:0}
+.wallet-amount-copy-btn{margin-left:auto}
+.wallet-copy-btn:active{color:#ffe600}
+.wallet-address-validity{color:#929292;font-size:13px;line-height:1.35;margin:8px 0 0}
+.wallet-address-validity b{color:#fff;font-weight:400}
