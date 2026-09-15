@@ -2522,3 +2522,16 @@ body.publication-preview-open{overflow:hidden}
 #wallet-pin-overlay {
     z-index: 8800 !important;
 }
+
+
+/* 2026-09-15 panel interaction fix: the profile overlay cannot cover the bottom navigation hit area. */
+.profile-sheet-overlay {
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: var(--nav-h) !important;
+    height: auto !important;
+}
+.profile-sheet { bottom: 0 !important; }
+.bottom-nav, .ref-bottom-nav { pointer-events: auto !important; z-index: 20000 !important; }
+.bottom-nav .nav-btn, .ref-bottom-nav .nav-btn { pointer-events: auto !important; }
