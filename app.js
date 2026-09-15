@@ -1,7 +1,7 @@
 /* global Telegram */
 'use strict';
 
-const APP_VERSION = '20260915-pinfix2';
+const APP_VERSION = '20260915-panel-runtime-fix3';
 console.log(`[APP] app.js loaded, version ${APP_VERSION}`);
 window.APP_VERSION = APP_VERSION;
 
@@ -640,9 +640,6 @@ function getTgUser() {
     window.openDepositOut = openDepositOut;
     window.openSubpage = openSubpage;
     window.goBackToProfile = goBackToProfile;
-    window.toggleNetworkDropdown = toggleNetworkDropdown;
-    window.copyDepositAddr = copyDepositAddr;
-    window.checkDepositManual = checkDepositManual;
     window.openSettingsPage = openSettingsPage;
     window.toggleProfileHidden = toggleProfileHidden;
     window.saveDescription = saveDescription;
@@ -663,8 +660,6 @@ function getTgUser() {
     window.checkDealPayment = checkDealPayment;
     window.copyPaymentAddress = copyPaymentAddress;
     window.confirmDealCompletion = confirmDealCompletion;
-    window.submitWithdrawal = submitWithdrawal;
-    window.loadWithdrawals = loadWithdrawals;
     // Admin panel
     window.adminTab = adminTab;
     window.adminSearchUsers = adminSearchUsers;
