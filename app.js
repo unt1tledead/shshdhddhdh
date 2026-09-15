@@ -375,6 +375,10 @@ function onAppReady() {
 
 // ── Navigation ────────────────────────────────────────────────────────────
 function navTo(pageId, btn) {
+    // Bottom navigation must always work, even while a wallet sheet/PIN sheet is open.
+    // Close transient overlays first so they cannot keep intercepting the UI after navigation.
+    if (typeof closeWalletSheet === 'function') closeWalletSheet();
+    if (typeof closeWalletPin === 'function') closeWalletPin();
     if (profileSheetOpen) closeProfileSheet();
     const prev = document.querySelector('.page.active');
     const next = document.getElementById(`page-${pageId}`);
@@ -1251,6 +1255,12 @@ function closeProfileSheet() {
 }
 
 function toggleProfileSheet() {
+    // Profile trigger is part of the persistent bottom nav. It must remain usable
+    // above wallet/payment overlays too.
+    if (!profileSheetOpen) {
+        if (typeof closeWalletSheet === 'function') closeWalletSheet();
+        if (typeof closeWalletPin === 'function') closeWalletPin();
+    }
     profileSheetOpen ? closeProfileSheet() : openProfileSheet();
 }
 
