@@ -1660,6 +1660,38 @@ function renderServiceList(services) {
             </div>`;
     }
 
+    async function copyWalletValue(value) {
+        try {
+            if (navigator.clipboard?.writeText) {
+                await navigator.clipboard.writeText(value);
+            } else {
+                const ta = document.createElement('textarea');
+                ta.value = value;
+                ta.style.position = 'fixed';
+                ta.style.opacity = '0';
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                ta.remove();
+            }
+            if (tg?.HapticFeedback?.notificationOccurred) tg.HapticFeedback.notificationOccurred('success');
+        } catch (_) {}
+    }
+
+    function startWalletAddressTimer(seconds = 3600) {
+        clearInterval(window.__walletAddressTimer);
+        const deadline = Date.now() + seconds * 1000;
+        const tick = () => {
+            const el = document.getElementById('wallet-address-timer');
+            if (!el) return clearInterval(window.__walletAddressTimer);
+            const left = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+            el.textContent = `${String(Math.floor(left / 60)).padStart(2,'0')}:${String(left % 60).padStart(2,'0')}`;
+            if (!left) clearInterval(window.__walletAddressTimer);
+        };
+        tick();
+        window.__walletAddressTimer = setInterval(tick, 1000);
+    }
+
     async function copyWalletAddress(address) {
         try {
             if (navigator.clipboard?.writeText) {
@@ -1697,13 +1729,15 @@ function renderServiceList(services) {
             ${walletNetworkMarkup(cfg)}
             <div class="wallet-payment-amount-label">Сумма</div>
             <div class="wallet-payment-amount-grid">
-                <div><span>${escHtml(walletSelectedAsset)}</span> ${escHtml(formatWalletAmount(n))}</div>
+                <div class="wallet-copy-field"><div><span>${escHtml(walletSelectedAsset)}</span> ${escHtml(formatWalletAmount(n))}</div><button type="button" class="wallet-copy-btn wallet-amount-copy-btn" aria-label="Скопировать сумму" onclick="copyWalletValue('${formatWalletAmount(n)}')">⧉</button></div>
                 <div><span>USD</span> ${escHtml(usdText)}</div>
             </div>
             <div class="wallet-payment-note">Сумма должна совпадать с указанной до последней цифры. Любое отклонение может привести к потере средств.</div>
             ${walletAddressMarkup(cfg)}
+            <div class="wallet-address-validity">Адрес кошелька действителен еще: <b id="wallet-address-timer">60:00</b></div>
             <div class="wallet-autocheck">ⓘ&nbsp;&nbsp;Автопроверка активна. После поступления средств статус изменится автоматически.</div>
             <button class="wallet-yellow-btn" type="button" onclick="closeWalletSheet()">Отменить платеж</button>`;
+        startWalletAddressTimer(3600);
     }
 
     function renderGuaranteePlaceholder() {
