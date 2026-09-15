@@ -2977,3 +2977,36 @@ body.publication-preview-open{overflow:hidden}
     .ad-progress-line { margin:0 6px; }
     .ad-duration { grid-template-columns:34px 1fr auto; padding:12px; gap:9px; }
 }
+
+/* Advertising dropdowns — custom UI matching CL-Service references (no native Android select sheet) */
+.ad-select-wrap { position:relative; z-index:2; }
+.ad-select-wrap.open { z-index:30; }
+.ad-select {
+    appearance:none; -webkit-appearance:none; width:100%; height:53px; border:1px solid transparent;
+    border-radius:12px; background:#1b1b1b; color:#efefef; padding:0 13px 0 12px;
+    font:inherit; font-size:16px; outline:0; display:flex; align-items:center;
+    justify-content:space-between; gap:14px; text-align:left;
+}
+.ad-select.open { border-color:#e6d400; border-bottom-left-radius:12px; border-bottom-right-radius:12px; }
+.ad-select-value { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ad-select-value.placeholder { color:#838383; }
+.ad-select-arrow { position:static; transform:none; margin-left:auto; color:#777; font-size:23px; line-height:1; transition:transform .18s ease; }
+.ad-select-arrow.open { transform:rotate(180deg); }
+.ad-select-menu {
+    display:none; position:absolute; left:0; right:0; top:calc(100% + 3px); background:#272727;
+    border-radius:12px; padding:6px 0; max-height:274px; overflow-y:auto; overscroll-behavior:contain;
+    box-shadow:0 14px 28px rgba(0,0,0,.34); scrollbar-width:thin; scrollbar-color:#5b5b5b transparent;
+}
+.ad-select-menu.open { display:block; }
+.ad-select-menu::-webkit-scrollbar { width:4px; }
+.ad-select-menu::-webkit-scrollbar-thumb { background:#5b5b5b; border-radius:4px; }
+.ad-select-option {
+    width:100%; min-height:53px; padding:13px 22px; border:0; background:transparent; color:#8e8e8e;
+    font:inherit; font-size:16px; line-height:1.25; text-align:left; display:flex; align-items:center;
+}
+.ad-select-option.active { color:#ffe500; }
+.ad-select-option:active { background:#383838; }
+.ad-select-wrap.has-error > .ad-select { border-color:#ef5350; }
+
+/* Keep the long category dropdown visually identical to the reference and scrollable. */
+[data-ad-select="ad-section"] .ad-select-menu { max-height:286px; }
