@@ -1,7 +1,7 @@
 /* global Telegram */
 'use strict';
 
-const APP_VERSION = '20260915-panel-runtime-fix3';
+const APP_VERSION = '20260915-wallet-reference-fix4';
 console.log(`[APP] app.js loaded, version ${APP_VERSION}`);
 window.APP_VERSION = APP_VERSION;
 
@@ -10,7 +10,9 @@ const tg = window.Telegram?.WebApp;
 if (tg) {
     tg.ready();
     tg.expand();
-    try { if (tg.requestFullscreen) tg.requestFullscreen(); } catch (_) {}
+    // Keep Telegram's normal Mini App title bar (matches the reference).
+    // Older builds requested fullscreen, so leave it on reload when possible.
+    try { if (tg.isFullscreen && tg.exitFullscreen) tg.exitFullscreen(); } catch (_) {}
     try { if (tg.setHeaderColor)    tg.setHeaderColor('#0d0d0d'); } catch (_) {}
     try { if (tg.setBackgroundColor) tg.setBackgroundColor('#0d0d0d'); } catch (_) {}
 }
@@ -1490,6 +1492,7 @@ function renderServiceList(services) {
     }
 
     function openDepositMenu() {
+        document.querySelectorAll('.bottom-nav .nav-btn, .ref-bottom-nav .nav-btn').forEach(b => b.classList.remove('active'));
         openSubpage('deposit-menu');
     }
 

@@ -13,7 +13,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/styles.css?v=20260915-panel-runtime-fix3">
+    <link rel="stylesheet" href="css/styles.css?v=20260915-wallet-reference-fix4">
 </head>
 <body>
 
@@ -542,9 +542,14 @@
                     <button class="wallet-yellow-btn" type="button" onclick="openServiceTopup()">Пополнить баланс для услуг</button>
 
                     <div class="wallet-label wallet-space-lg">Гарантийный депозит:</div>
-                    <div class="wallet-guarantee-empty" id="wallet-guarantee-state">
-                        <div class="wallet-normal-value">У вас нет депозитов</div>
+                    <div class="wallet-guarantee-active" id="wallet-guarantee-state">
+                        <div class="wallet-guarantee-line">
+                            <span class="wallet-guarantee-token" aria-hidden="true">T</span>
+                            <span class="wallet-guarantee-amount">0 USDT TRC20</span>
+                        </div>
+                        <div class="wallet-guarantee-usd">≈0.00 $</div>
                         <div class="wallet-help">Сумма финансового обеспечения профиля.<br>Отображается для всех пользователей форума</div>
+                        <div class="wallet-guarantee-status">Активный</div>
                     </div>
                     <button class="wallet-yellow-btn" type="button" onclick="openGuaranteeTopup()">Пополнить гарантийный депозит</button>
                     <button class="wallet-dark-btn" type="button" onclick="openGuaranteeWithdraw()">Вывести гарантийный депозит</button>
@@ -1060,6 +1065,6 @@
 </div>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script defer src="app.js?v=20260915-panel-runtime-fix3"></script>
+<script defer src="app.js?v=20260915-wallet-reference-fix4"></script>
 </body>
 </html>
