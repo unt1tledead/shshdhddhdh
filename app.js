@@ -1,7 +1,7 @@
 /* global Telegram */
 'use strict';
 
-const APP_VERSION = '20260915-wallet-real-qrs-fix5';
+const APP_VERSION = '20260915-auth-gate-v1';
 console.log(`[APP] app.js loaded, version ${APP_VERSION}`);
 window.APP_VERSION = APP_VERSION;
 
@@ -24,6 +24,9 @@ const KEY_LOCKOUT  = 'gw_pin_lockout';
 const KEY_LEGEND   = 'gw_legend_hidden';
 const KEY_UID      = 'gw_uid';
 const KEY_PROFILE_HIDDEN = 'gw_profile_hidden';
+const KEY_AUTH_ACCOUNT = 'gw_auth_account';
+const KEY_AUTH_SESSION = 'gw_auth_session';
+const KEY_AUTH_REMEMBER = 'gw_auth_remember';
 
 
 // ── Frontend profile adapter ─────────────────────────────────────────────
@@ -46,11 +49,13 @@ const PROFILE_MOCK = {
 
 function getCurrentUserModel() {
     const telegramUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
+    const localAccount = getLocalAuthAccount();
+    const fallbackName = localAccount?.login || 'unt1tledead';
     const fallback = {
         id: 8626531033,
-        firstName: 'unt1tledead',
+        firstName: fallbackName,
         lastName: '',
-        username: 'antonenkkovich',
+        username: localAccount?.login || 'antonenkkovich',
         photoUrl: null,
     };
     if (!telegramUser) return fallback;
@@ -84,27 +89,35 @@ window.pinBackspace = pinBackspace;
 document.addEventListener('DOMContentLoaded', boot);
 
 function boot() {
-    // One-time recovery for the broken PIN build: clear stale failed-attempt/lockout state.
     const pinFixKey = 'gw_pin_fix_release';
     if (localStorage.getItem(pinFixKey) !== APP_VERSION) {
         localStorage.removeItem(KEY_ATTEMPTS);
         localStorage.removeItem(KEY_LOCKOUT);
         localStorage.setItem(pinFixKey, APP_VERSION);
     }
-    // Парсим параметры из URL для открытия сделки
+
     const params = new URLSearchParams(window.location.search);
     const dealIdParam = params.get('deal_id');
-    console.log('🔍 URL params:', {
-        fullSearch: window.location.search,
-        dealIdParam: dealIdParam,
-        allParams: Object.fromEntries(params),
-    });
-    if (dealIdParam) {
-        _pendingDealId = parseInt(dealIdParam);
-        console.log(`📌 Pending deal ID set to: ${_pendingDealId}`);
+    if (dealIdParam) _pendingDealId = parseInt(dealIdParam, 10);
+
+    bindAuthPinInputs();
+
+    const account = getLocalAuthAccount();
+    const session = localStorage.getItem(KEY_AUTH_SESSION) === '1';
+    const remember = localStorage.getItem(KEY_AUTH_REMEMBER) === '1';
+
+    // First launch must begin with registration/login, not the private app.
+    if (!account) {
+        showScreen('auth-screen');
+        showAuthView('register');
+        return;
+    }
+    if (!session && !remember) {
+        showScreen('auth-screen');
+        showAuthView('login');
+        return;
     }
 
-    // Check active lockout
     const lockoutUntil = parseInt(localStorage.getItem(KEY_LOCKOUT) || '0', 10);
     if (lockoutUntil > Date.now()) {
         pinMode = localStorage.getItem(KEY_PIN) ? 'enter' : 'setup';
@@ -114,7 +127,6 @@ function boot() {
         return;
     }
 
-    // A stale/expired lockout must never leave the keypad disabled after a deploy/reload.
     localStorage.removeItem(KEY_LOCKOUT);
     setNumpadEnabled(true);
     document.getElementById('pin-lockout')?.classList.add('hidden');
@@ -123,9 +135,8 @@ function boot() {
 
     const storedPin = localStorage.getItem(KEY_PIN);
     if (!storedPin) {
-        pinMode = 'setup';
-        showScreen('pin-screen');
-        updatePinTexts();
+        showScreen('auth-screen');
+        showAuthView('login');
         return;
     }
 
@@ -163,9 +174,220 @@ function updatePinTexts() {
 
 // ── Screen helper ─────────────────────────────────────────────────────────
 function showScreen(id) {
-    document.getElementById('pin-screen').classList.toggle('hidden', id !== 'pin-screen');
-    document.getElementById('app-screen').classList.toggle('hidden', id !== 'app-screen');
+    document.getElementById('auth-screen')?.classList.toggle('hidden', id !== 'auth-screen');
+    document.getElementById('pin-screen')?.classList.toggle('hidden', id !== 'pin-screen');
+    document.getElementById('app-screen')?.classList.toggle('hidden', id !== 'app-screen');
 }
+
+
+// ── Frontend auth prototype ──────────────────────────────────────────────
+// This keeps the screens fully clickable before a real backend is connected.
+// Production login/recovery must be verified server-side.
+function getLocalAuthAccount() {
+    try { return JSON.parse(localStorage.getItem(KEY_AUTH_ACCOUNT) || 'null'); }
+    catch (_) { return null; }
+}
+
+async function authHash(value) {
+    try {
+        const data = new TextEncoder().encode(String(value));
+        const digest = await crypto.subtle.digest('SHA-256', data);
+        return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, '0')).join('');
+    } catch (_) {
+        return btoa(unescape(encodeURIComponent(String(value))));
+    }
+}
+
+function showAuthView(view) {
+    showScreen('auth-screen');
+    ['register','login','recovery'].forEach(name => {
+        document.getElementById(`auth-${name}-view`)?.classList.toggle('hidden', name !== view);
+    });
+    document.getElementById('auth-login-nav')?.classList.toggle('active', view === 'login');
+    document.getElementById('auth-nickname-tip')?.classList.add('hidden');
+    document.querySelector('.auth-main')?.scrollTo({ top: 0, behavior: 'instant' });
+    if (view === 'recovery') switchRecoveryMethod('seed');
+}
+
+function toggleNicknameTip() {
+    document.getElementById('auth-nickname-tip')?.classList.toggle('hidden');
+}
+
+function toggleAuthPassword(id, btn) {
+    const input = document.getElementById(id);
+    if (!input) return;
+    input.type = input.type === 'password' ? 'text' : 'password';
+    btn?.classList.toggle('visible', input.type === 'text');
+}
+
+function bindAuthPinInputs() {
+    document.querySelectorAll('.auth-pin-row').forEach(row => {
+        const cells = Array.from(row.querySelectorAll('.auth-pin-cell'));
+        cells.forEach((cell, index) => {
+            cell.addEventListener('input', () => {
+                cell.value = cell.value.replace(/\D/g, '').slice(-1);
+                if (cell.value && cells[index + 1]) cells[index + 1].focus();
+            });
+            cell.addEventListener('keydown', e => {
+                if (e.key === 'Backspace' && !cell.value && cells[index - 1]) cells[index - 1].focus();
+            });
+            cell.addEventListener('paste', e => {
+                const digits = (e.clipboardData?.getData('text') || '').replace(/\D/g, '').slice(0, 4);
+                if (!digits) return;
+                e.preventDefault();
+                digits.split('').forEach((d, i) => { if (cells[i]) cells[i].value = d; });
+                cells[Math.min(digits.length, 4) - 1]?.focus();
+            });
+        });
+    });
+}
+
+function readAuthPin(rowId) {
+    return Array.from(document.querySelectorAll(`#${rowId} .auth-pin-cell`)).map(i => i.value).join('');
+}
+
+function clearAuthErrors(prefix) {
+    document.querySelectorAll(`#auth-${prefix}-view .auth-error`).forEach(e => { e.textContent = ''; e.classList.add('hidden'); });
+    document.querySelectorAll(`#auth-${prefix}-view .auth-input-wrap, #auth-${prefix}-view .auth-pin-row`).forEach(e => e.classList.remove('invalid'));
+}
+
+function setAuthError(id, text, wrapId) {
+    const el = document.getElementById(id);
+    if (el) { el.textContent = text; el.classList.remove('hidden'); }
+    if (wrapId) document.getElementById(wrapId)?.classList.add('invalid');
+}
+
+async function submitRegistration() {
+    clearAuthErrors('register');
+    const login = document.getElementById('reg-login')?.value.trim() || '';
+    const password = document.getElementById('reg-password')?.value || '';
+    const password2 = document.getElementById('reg-password2')?.value || '';
+    const pin = readAuthPin('reg-pin-row');
+    const pin2 = readAuthPin('reg-pin2-row');
+    const rules = !!document.getElementById('reg-rules')?.checked;
+    let ok = true;
+
+    if (!login) { setAuthError('reg-login-error', 'Заполните поле', 'reg-login-wrap'); ok = false; }
+    if (password.length < 8) { setAuthError('reg-password-error', 'Минимальная длина символов: 8', 'reg-password-wrap'); ok = false; }
+    if (!password2) { setAuthError('reg-password2-error', 'Заполните поле', 'reg-password2-wrap'); ok = false; }
+    else if (password !== password2) { setAuthError('reg-password2-error', 'Пароли не совпадают', 'reg-password2-wrap'); ok = false; }
+    if (pin.length !== 4) { setAuthError('reg-pin-error', 'Заполните все поля PIN-кода', 'reg-pin-row'); ok = false; }
+    if (pin2.length !== 4) { setAuthError('reg-pin2-error', 'Заполните все поля подтверждения PIN-кода', 'reg-pin2-row'); ok = false; }
+    else if (pin !== pin2) { setAuthError('reg-pin2-error', 'PIN-коды не совпадают', 'reg-pin2-row'); ok = false; }
+    if (!rules) { setAuthError('reg-rules-error', 'Вы должны согласиться с правилами форума'); ok = false; }
+    if (!ok) return;
+
+    const passwordHash = await authHash(password);
+    localStorage.setItem(KEY_AUTH_ACCOUNT, JSON.stringify({ login, passwordHash, createdAt: Date.now() }));
+    localStorage.setItem(KEY_PIN, pin);
+    localStorage.setItem(KEY_AUTH_SESSION, '1');
+    localStorage.setItem(KEY_AUTH_REMEMBER, '1');
+    localStorage.removeItem(KEY_ATTEMPTS);
+    localStorage.removeItem(KEY_LOCKOUT);
+    authToast('Регистрация завершена');
+    showScreen('app-screen');
+    onAppReady();
+}
+
+async function submitLogin() {
+    clearAuthErrors('login');
+    const login = document.getElementById('login-user')?.value.trim() || '';
+    const password = document.getElementById('login-password')?.value || '';
+    let ok = true;
+    if (!login) { setAuthError('login-user-error', 'Заполните поле', 'login-user-wrap'); ok = false; }
+    if (!password) { setAuthError('login-password-error', 'Заполните поле', 'login-password-wrap'); ok = false; }
+    if (!ok) return;
+
+    const account = getLocalAuthAccount();
+    if (!account) {
+        setAuthError('login-general-error', 'Аккаунт не найден. Сначала зарегистрируйтесь.');
+        return;
+    }
+    const passwordHash = await authHash(password);
+    if (login !== account.login || passwordHash !== account.passwordHash) {
+        setAuthError('login-general-error', 'Неверный логин или пароль');
+        return;
+    }
+
+    const remember = !!document.getElementById('login-remember')?.checked;
+    localStorage.setItem(KEY_AUTH_SESSION, '1');
+    if (remember) localStorage.setItem(KEY_AUTH_REMEMBER, '1');
+    else localStorage.removeItem(KEY_AUTH_REMEMBER);
+
+    if (localStorage.getItem(KEY_PIN)) {
+        pinMode = 'enter';
+        pinBuffer = '';
+        updateDots();
+        showScreen('pin-screen');
+        updatePinTexts();
+    } else {
+        showScreen('app-screen');
+        onAppReady();
+    }
+}
+
+function switchRecoveryMethod(method) {
+    const seed = method !== 'email';
+    document.getElementById('recovery-seed-tab')?.classList.toggle('active', seed);
+    document.getElementById('recovery-email-tab')?.classList.toggle('active', !seed);
+    document.getElementById('recovery-seed-panel')?.classList.toggle('hidden', !seed);
+    document.getElementById('recovery-email-panel')?.classList.toggle('hidden', seed);
+}
+
+function submitRecovery() {
+    const emailPanel = !document.getElementById('recovery-email-panel')?.classList.contains('hidden');
+    if (emailPanel) {
+        const email = document.getElementById('recovery-email')?.value.trim() || '';
+        const err = document.getElementById('recovery-email-error');
+        document.getElementById('recovery-email-wrap')?.classList.remove('invalid');
+        err?.classList.add('hidden');
+        if (!/^\S+@\S+\.\S+$/.test(email)) {
+            setAuthError('recovery-email-error', 'Введите корректный e-mail', 'recovery-email-wrap');
+            return;
+        }
+        authToast('Письмо восстановления будет отправляться через backend');
+        return;
+    }
+
+    const words = Array.from(document.querySelectorAll('.auth-seed-input')).map(i => i.value.trim());
+    const err = document.getElementById('recovery-seed-error');
+    err?.classList.add('hidden');
+    if (words.some(v => !v)) {
+        setAuthError('recovery-seed-error', 'Заполните все 12 слов seed-фразы');
+        return;
+    }
+    authToast('Проверка seed-фразы будет выполняться через backend');
+}
+
+function authPublicStub(label) {
+    authToast(`${label}: доступ после авторизации`);
+}
+
+function authToast(text) {
+    const el = document.getElementById('auth-toast');
+    if (!el) return;
+    el.textContent = text;
+    el.classList.remove('hidden');
+    clearTimeout(window.__authToastTimer);
+    window.__authToastTimer = setTimeout(() => el.classList.add('hidden'), 2200);
+}
+
+function authLogoutToLogin() {
+    localStorage.removeItem(KEY_AUTH_SESSION);
+    localStorage.removeItem(KEY_AUTH_REMEMBER);
+    showScreen('auth-screen');
+    showAuthView('login');
+}
+
+window.showAuthView = showAuthView;
+window.toggleNicknameTip = toggleNicknameTip;
+window.toggleAuthPassword = toggleAuthPassword;
+window.submitRegistration = submitRegistration;
+window.submitLogin = submitLogin;
+window.switchRecoveryMethod = switchRecoveryMethod;
+window.submitRecovery = submitRecovery;
+window.authPublicStub = authPublicStub;
+window.authLogoutToLogin = authLogoutToLogin;
 
 // ── PIN: key press ────────────────────────────────────────────────────────
 function pinPress(digit) {
@@ -1293,9 +1515,12 @@ function showPanelStub(title) {
 
 function showLogoutStub() {
     closeProfileSheet();
-    const message = 'Выход из аккаунта будет подключён вместе с бэкендом.';
-    if (tg?.showAlert) tg.showAlert(message);
-    else alert(message);
+    localStorage.removeItem(KEY_AUTH_SESSION);
+    localStorage.removeItem(KEY_AUTH_REMEMBER);
+    pinBuffer = '';
+    updateDots();
+    showScreen('auth-screen');
+    showAuthView('login');
 }
 
 function bindBottomNavigation() {
@@ -1640,7 +1865,7 @@ function renderServiceList(services) {
                 <label>Адрес кошелька</label>
                 <div class="wallet-address-value">
                     <span>${escHtml(cfg.address)}</span>
-                    <button type="button" class="wallet-copy-btn" aria-label="Скопировать адрес" onclick="copyWalletAddress('${cfg.address}')">⧉</button>
+                    <button type="button" class="wallet-copy-btn" aria-label="Скопировать адрес" onclick="copyWalletAddress('${cfg.address}')"><img src="assets/ui/copy.png" class="wallet-copy-img" alt=""></button>
                 </div>
             </div>`;
     }
@@ -1662,19 +1887,13 @@ function renderServiceList(services) {
 
     async function copyWalletValue(value) {
         try {
-            if (navigator.clipboard?.writeText) {
-                await navigator.clipboard.writeText(value);
-            } else {
+            if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(String(value));
+            else {
                 const ta = document.createElement('textarea');
-                ta.value = value;
-                ta.style.position = 'fixed';
-                ta.style.opacity = '0';
-                document.body.appendChild(ta);
-                ta.select();
-                document.execCommand('copy');
-                ta.remove();
+                ta.value = String(value); ta.style.position = 'fixed'; ta.style.opacity = '0';
+                document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove();
             }
-            if (tg?.HapticFeedback?.notificationOccurred) tg.HapticFeedback.notificationOccurred('success');
+            tg?.HapticFeedback?.notificationOccurred?.('success');
         } catch (_) {}
     }
 
@@ -1683,13 +1902,12 @@ function renderServiceList(services) {
         const deadline = Date.now() + seconds * 1000;
         const tick = () => {
             const el = document.getElementById('wallet-address-timer');
-            if (!el) return clearInterval(window.__walletAddressTimer);
+            if (!el) { clearInterval(window.__walletAddressTimer); return; }
             const left = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
             el.textContent = `${String(Math.floor(left / 60)).padStart(2,'0')}:${String(left % 60).padStart(2,'0')}`;
             if (!left) clearInterval(window.__walletAddressTimer);
         };
-        tick();
-        window.__walletAddressTimer = setInterval(tick, 1000);
+        tick(); window.__walletAddressTimer = setInterval(tick, 1000);
     }
 
     async function copyWalletAddress(address) {
@@ -1729,7 +1947,7 @@ function renderServiceList(services) {
             ${walletNetworkMarkup(cfg)}
             <div class="wallet-payment-amount-label">Сумма</div>
             <div class="wallet-payment-amount-grid">
-                <div class="wallet-copy-field"><div><span>${escHtml(walletSelectedAsset)}</span> ${escHtml(formatWalletAmount(n))}</div><button type="button" class="wallet-copy-btn wallet-amount-copy-btn" aria-label="Скопировать сумму" onclick="copyWalletValue('${formatWalletAmount(n)}')">⧉</button></div>
+                <div class="wallet-copy-field"><div><span>${escHtml(walletSelectedAsset)}</span> ${escHtml(formatWalletAmount(n))}</div><button type="button" class="wallet-copy-btn wallet-amount-copy-btn" aria-label="Скопировать сумму" onclick="copyWalletValue('${formatWalletAmount(n)}')"><img src="assets/ui/copy.png" class="wallet-copy-img" alt=""></button></div>
                 <div><span>USD</span> ${escHtml(usdText)}</div>
             </div>
             <div class="wallet-payment-note">Сумма должна совпадать с указанной до последней цифры. Любое отклонение может привести к потере средств.</div>
@@ -3045,3 +3263,5 @@ window.selectPublicationSubsection = selectPublicationSubsection;
 window.setPublicationRulesAccepted = setPublicationRulesAccepted;
 window.updatePublicationCounter = updatePublicationCounter;
 window.validatePublicationDraft = validatePublicationDraft;
+
+if (typeof copyWalletValue === 'function') window.copyWalletValue = copyWalletValue;

@@ -13,9 +13,126 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/styles.css?v=20260915-wallet-real-qrs-fix5">
+    <link rel="stylesheet" href="css/styles.css?v=20260915-auth-gate-v1">
 </head>
 <body>
+
+
+<!-- ══════════════════════ AUTH SCREEN ══════════════════════ -->
+<div id="auth-screen" class="screen hidden">
+    <header class="auth-header">
+        <button class="header-action auth-header-menu" type="button" aria-label="Меню" onclick="authPublicStub('Меню')">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>
+        </button>
+        <img class="auth-header-logo" src="icons/8.svg" alt="CL-Service">
+        <button class="header-action auth-header-search" type="button" aria-label="Поиск" onclick="authPublicStub('Поиск')">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.2" stroke="currentColor" stroke-width="1.8"/><path d="m15.3 15.3 4.2 4.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </button>
+    </header>
+
+    <main class="auth-main">
+        <!-- Registration -->
+        <section id="auth-register-view" class="auth-view auth-card">
+            <div id="auth-nickname-tip" class="auth-tip hidden">Обратите внимание, что последующая<br>замена никнейма платная.</div>
+            <h1>Регистрация</h1>
+            <p class="auth-switch-line">Уже есть аккаунт? <button type="button" class="auth-link" onclick="showAuthView('login')">Войти</button></p>
+
+            <label class="auth-label">Никнейм <button type="button" class="auth-info-btn" onclick="toggleNicknameTip()" aria-label="Информация">ⓘ</button></label>
+            <div class="auth-input-wrap" id="reg-login-wrap"><input id="reg-login" class="auth-input" type="text" autocomplete="username" placeholder="Введите логин"></div>
+            <p class="auth-error hidden" id="reg-login-error"></p>
+
+            <label class="auth-label">Пароль</label>
+            <div class="auth-input-wrap" id="reg-password-wrap"><input id="reg-password" class="auth-input" type="password" autocomplete="new-password" placeholder="Введите пароль"><button type="button" class="auth-eye" onclick="toggleAuthPassword('reg-password', this)" aria-label="Показать пароль">◉</button></div>
+            <p class="auth-error hidden" id="reg-password-error"></p>
+
+            <label class="auth-label">Подтверждение пароля</label>
+            <div class="auth-input-wrap" id="reg-password2-wrap"><input id="reg-password2" class="auth-input" type="password" autocomplete="new-password" placeholder="Повторите пароль"><button type="button" class="auth-eye" onclick="toggleAuthPassword('reg-password2', this)" aria-label="Показать пароль">◉</button></div>
+            <p class="auth-error hidden" id="reg-password2-error"></p>
+
+            <label class="auth-label auth-pin-label">PIN-код</label>
+            <p class="auth-hint">Нужен для подтверждения важных действий на форуме.</p>
+            <div class="auth-pin-row" id="reg-pin-row">
+                <input class="auth-pin-cell" inputmode="numeric" maxlength="1" aria-label="PIN 1"><input class="auth-pin-cell" inputmode="numeric" maxlength="1" aria-label="PIN 2"><input class="auth-pin-cell" inputmode="numeric" maxlength="1" aria-label="PIN 3"><input class="auth-pin-cell" inputmode="numeric" maxlength="1" aria-label="PIN 4">
+            </div>
+            <p class="auth-error hidden" id="reg-pin-error"></p>
+
+            <label class="auth-label auth-pin-label">Подтвердите PIN-код</label>
+            <div class="auth-pin-row" id="reg-pin2-row">
+                <input class="auth-pin-cell" inputmode="numeric" maxlength="1" aria-label="Подтверждение PIN 1"><input class="auth-pin-cell" inputmode="numeric" maxlength="1" aria-label="Подтверждение PIN 2"><input class="auth-pin-cell" inputmode="numeric" maxlength="1" aria-label="Подтверждение PIN 3"><input class="auth-pin-cell" inputmode="numeric" maxlength="1" aria-label="Подтверждение PIN 4">
+            </div>
+            <p class="auth-error hidden" id="reg-pin2-error"></p>
+
+            <label class="auth-check-row"><input id="reg-rules" type="checkbox"><span class="auth-check-box"></span><span>Я согласен с <button type="button" class="auth-inline-link" onclick="authPublicStub('Правила форума')">правилами</button> форума.</span></label>
+            <p class="auth-error hidden" id="reg-rules-error"></p>
+
+            <button type="button" class="auth-primary" onclick="submitRegistration()">Далее</button>
+            <button type="button" class="auth-secondary" onclick="authPublicStub('Contact us')">Contact us</button>
+        </section>
+
+        <!-- Login -->
+        <section id="auth-login-view" class="auth-view auth-card auth-login-card hidden">
+            <h1>Вход</h1>
+            <p class="auth-switch-line">Еще нет аккаунта? <button type="button" class="auth-link" onclick="showAuthView('register')">Зарегистрироваться</button></p>
+
+            <label class="auth-label">Логин или email</label>
+            <div class="auth-input-wrap" id="login-user-wrap"><input id="login-user" class="auth-input" type="text" autocomplete="username" placeholder="Введите логин или email"></div>
+            <p class="auth-error hidden" id="login-user-error"></p>
+
+            <label class="auth-label">Пароль</label>
+            <div class="auth-input-wrap" id="login-password-wrap"><input id="login-password" class="auth-input" type="password" autocomplete="current-password" placeholder="Введите пароль"><button type="button" class="auth-eye" onclick="toggleAuthPassword('login-password', this)" aria-label="Показать пароль">◉</button></div>
+            <p class="auth-error hidden" id="login-password-error"></p>
+
+            <div class="auth-login-options">
+                <label class="auth-check-row auth-remember"><input id="login-remember" type="checkbox"><span class="auth-check-box"></span><span>Запомнить меня</span></label>
+                <button type="button" class="auth-link auth-forgot" onclick="showAuthView('recovery')">Забыли пароль?</button>
+            </div>
+            <p class="auth-error hidden" id="login-general-error"></p>
+
+            <div class="auth-login-actions">
+                <button type="button" class="auth-primary" onclick="submitLogin()">Войти</button>
+                <button type="button" class="auth-secondary" onclick="authPublicStub('Contact us')">Contact us</button>
+            </div>
+        </section>
+
+        <!-- Recovery -->
+        <section id="auth-recovery-view" class="auth-view auth-card auth-recovery-card hidden">
+            <h1>Восстановление пароля</h1>
+            <p class="auth-recovery-sub">Выберите способ восстановления</p>
+            <div class="auth-recovery-tabs">
+                <button type="button" id="recovery-seed-tab" class="auth-recovery-tab active" onclick="switchRecoveryMethod('seed')">Seed-фраза</button>
+                <button type="button" id="recovery-email-tab" class="auth-recovery-tab" onclick="switchRecoveryMethod('email')">E-mail</button>
+            </div>
+            <div class="auth-divider"></div>
+
+            <div id="recovery-seed-panel">
+                <p class="auth-recovery-copy">Введите указанные слова из вашей seed-фразы,<br>чтобы сбросить пароль</p>
+                <div class="auth-seed-grid">
+                    <input class="auth-seed-input" placeholder="1."><input class="auth-seed-input" placeholder="2."><input class="auth-seed-input" placeholder="3."><input class="auth-seed-input" placeholder="4."><input class="auth-seed-input" placeholder="5."><input class="auth-seed-input" placeholder="6."><input class="auth-seed-input" placeholder="7."><input class="auth-seed-input" placeholder="8."><input class="auth-seed-input" placeholder="9."><input class="auth-seed-input" placeholder="10."><input class="auth-seed-input" placeholder="11."><input class="auth-seed-input" placeholder="12.">
+                </div>
+                <p class="auth-error hidden" id="recovery-seed-error"></p>
+            </div>
+
+            <div id="recovery-email-panel" class="hidden">
+                <p class="auth-recovery-copy">Укажите адрес вашей почты. Мы отправим на<br>него письмо со ссылкой для восстановления<br>пароля.</p>
+                <label class="auth-label">Email</label>
+                <div class="auth-input-wrap" id="recovery-email-wrap"><input id="recovery-email" class="auth-input" type="email" autocomplete="email" placeholder="Введите ваш e-mail"></div>
+                <p class="auth-error hidden" id="recovery-email-error"></p>
+            </div>
+
+            <div class="auth-recovery-actions">
+                <button type="button" class="auth-primary" onclick="submitRecovery()">Сбросить пароль</button>
+                <button type="button" class="auth-secondary" onclick="showAuthView('login')">Вернуться назад</button>
+            </div>
+        </section>
+    </main>
+
+    <nav class="auth-bottom-nav">
+        <button type="button" class="auth-nav-btn" onclick="authPublicStub('Главная')"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3V10.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg><span>Главная</span></button>
+        <button type="button" class="auth-nav-btn" onclick="authPublicStub('Каталог')"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.8"/><rect x="15" y="3" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.8"/><rect x="3" y="15" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.8"/><rect x="15" y="15" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.8"/></svg><span>Каталог</span></button>
+        <button type="button" id="auth-login-nav" class="auth-nav-btn" onclick="showAuthView('login')"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M10 4H5.5A1.5 1.5 0 0 0 4 5.5v13A1.5 1.5 0 0 0 5.5 20H10" stroke="currentColor" stroke-width="1.8"/><path d="M13 8l4 4-4 4M8 12h9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Вход</span></button>
+    </nav>
+    <div id="auth-toast" class="auth-toast hidden"></div>
+</div>
 
 <!-- ══════════════════════ PIN SCREEN ══════════════════════ -->
 <div id="pin-screen" class="screen">
@@ -1065,6 +1182,6 @@
 </div>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script defer src="app.js?v=20260915-wallet-real-qrs-fix5"></script>
+<script defer src="app.js?v=20260915-auth-gate-v1"></script>
 </body>
 </html>
