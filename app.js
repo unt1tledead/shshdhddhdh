@@ -1501,28 +1501,28 @@ function renderServiceList(services) {
             address: 'TXn8nKuU6UpP1BGzJ5HxqdZj6xw7HjUx1',
             qr: 'assets/wallets/usdt-trc20.jpg',
             network: 'Tron',
-            symbol: 'T',
+            icon: 'assets/network-icons/usdt-trc20.png',
             stableUsd: true
         },
         'BTC': {
             address: 'bc1qp7ehxd9x82f0lcyep78slaqq87e9y3dv2v6e3t',
             qr: 'assets/wallets/btc.jpg',
             network: 'Bitcoin',
-            symbol: '₿',
+            icon: 'assets/network-icons/btc.png',
             stableUsd: false
         },
         'ETH': {
             address: '0x15aD93F520590896fAAafaB4f30EcAd5A145A979',
             qr: 'assets/wallets/eth.jpg',
             network: 'Ethereum',
-            symbol: 'Ξ',
+            icon: 'assets/network-icons/eth.png',
             stableUsd: false
         },
         'USDT BEP20': {
             address: '0x15aD93F520590896fAAafaB4f30EcAd5A145A979',
             qr: 'assets/wallets/usdt-bep20.jpg',
             network: 'BNB Smart Chain',
-            symbol: 'B',
+            icon: 'assets/network-icons/usdt-bep20.png',
             stableUsd: true
         }
     };
@@ -1655,7 +1655,7 @@ function renderServiceList(services) {
     function walletNetworkMarkup(cfg) {
         return `
             <div class="wallet-network-card">
-                <div class="wallet-token">${escHtml(cfg.symbol)}</div>
+                <div class="wallet-token"><img src="${escHtml(cfg.icon)}" alt="${escHtml(cfg.network)}"></div>
                 <div><small>Сеть</small><b>${escHtml(cfg.network)}</b></div>
             </div>`;
     }
