@@ -2741,3 +2741,7 @@ body.publication-preview-open{overflow:hidden}
     .wallet-payment-qr{width:min(100%,320px);max-height:320px}
     .wallet-payment-amount-grid>div{font-size:14px}
 }
+
+/* Network logos: use image assets instead of text currency symbols. */
+.wallet-token{overflow:hidden;background:transparent!important;padding:0}
+.wallet-token img{width:100%;height:100%;display:block;object-fit:contain}
