@@ -1,7 +1,7 @@
 /* global Telegram */
 'use strict';
 
-const APP_VERSION = '20260915-wallet-reference-fix4';
+const APP_VERSION = '20260915-wallet-real-qrs-fix5';
 console.log(`[APP] app.js loaded, version ${APP_VERSION}`);
 window.APP_VERSION = APP_VERSION;
 
@@ -1496,7 +1496,37 @@ function renderServiceList(services) {
         openSubpage('deposit-menu');
     }
 
-    const WALLET_MOCK_ASSETS = ['USDT TRC20', 'TRX', 'ETH'];
+    const WALLET_PAYMENT_ASSETS = {
+        'USDT TRC20': {
+            address: 'TXn8nKuU6UpP1BGzJ5HxqdZj6xw7HjUx1',
+            qr: 'assets/wallets/usdt-trc20.jpg',
+            network: 'Tron',
+            symbol: 'T',
+            stableUsd: true
+        },
+        'BTC': {
+            address: 'bc1qp7ehxd9x82f0lcyep78slaqq87e9y3dv2v6e3t',
+            qr: 'assets/wallets/btc.jpg',
+            network: 'Bitcoin',
+            symbol: '₿',
+            stableUsd: false
+        },
+        'ETH': {
+            address: '0x15aD93F520590896fAAafaB4f30EcAd5A145A979',
+            qr: 'assets/wallets/eth.jpg',
+            network: 'Ethereum',
+            symbol: 'Ξ',
+            stableUsd: false
+        },
+        'USDT BEP20': {
+            address: '0x15aD93F520590896fAAafaB4f30EcAd5A145A979',
+            qr: 'assets/wallets/usdt-bep20.jpg',
+            network: 'BNB Smart Chain',
+            symbol: 'B',
+            stableUsd: true
+        }
+    };
+    const WALLET_MOCK_ASSETS = Object.keys(WALLET_PAYMENT_ASSETS);
     let walletSheetMode = null;
     let walletSelectedAsset = '';
 
@@ -1545,11 +1575,14 @@ function renderServiceList(services) {
         const opening = list.classList.contains('hidden');
         list.classList.toggle('hidden', !opening);
         if (opening) {
-            list.innerHTML = WALLET_MOCK_ASSETS.map(a => `<div class="wallet-select-option" onclick="selectWalletAsset('${a.replace(/'/g,"\\'")}')">${escHtml(a)}</div>`).join('');
+            list.innerHTML = WALLET_MOCK_ASSETS
+                .map(a => `<div class="wallet-select-option" onclick="selectWalletAsset('${a.replace(/'/g,"\\'")}')">${escHtml(a)}</div>`)
+                .join('');
         }
     }
 
     function selectWalletAsset(asset) {
+        if (!WALLET_PAYMENT_ASSETS[asset]) return;
         walletSelectedAsset = asset;
         const label = document.getElementById('wallet-asset-label');
         if (label) label.textContent = asset;
@@ -1558,7 +1591,7 @@ function renderServiceList(services) {
     }
 
     function continueWalletFlow() {
-        if (!walletSelectedAsset) {
+        if (!walletSelectedAsset || !WALLET_PAYMENT_ASSETS[walletSelectedAsset]) {
             document.getElementById('wallet-asset-trigger')?.classList.add('active');
             return;
         }
@@ -1568,47 +1601,125 @@ function renderServiceList(services) {
 
     function renderServiceAmountStep() {
         const c = document.getElementById('wallet-sheet-content');
+        const cfg = WALLET_PAYMENT_ASSETS[walletSelectedAsset];
+        if (!c || !cfg) return;
+        const placeholder = cfg.stableUsd ? `100 ${walletSelectedAsset}` : `Введите сумму в ${walletSelectedAsset}`;
         c.innerHTML = `
             <h3>Пополнение баланса для услуг</h3>
             <div class="wallet-select-label">Выберите актив</div>
             <div class="wallet-select active"><span>${escHtml(walletSelectedAsset)}</span><span>⌄</span></div>
             <div class="wallet-amount-label">Введите сумму на которую хотите пополнить счет</div>
-            <input id="wallet-service-amount" class="wallet-amount-input" inputmode="decimal" placeholder="100 ${escHtml(walletSelectedAsset)}" oninput="updateWalletUsdHint()">
-            <div id="wallet-usd-hint" class="wallet-usd-hint">≈0.00 $</div>
+            <input id="wallet-service-amount" class="wallet-amount-input" inputmode="decimal" placeholder="${escHtml(placeholder)}" oninput="updateWalletUsdHint()">
+            <div id="wallet-usd-hint" class="wallet-usd-hint">${cfg.stableUsd ? '≈0.00 $' : 'Курс в USD будет рассчитан бэкендом'}</div>
             <button class="wallet-yellow-btn" type="button" onclick="renderServicePaymentPlaceholder()">Продолжить</button>`;
     }
 
+    function parseWalletAmount(raw) {
+        return Number(String(raw || '').replace(',', '.').replace(/[^0-9.]/g,'')) || 0;
+    }
+
+    function formatWalletAmount(n) {
+        return Number(n).toLocaleString('en-US', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 8,
+            useGrouping: false
+        });
+    }
+
     function updateWalletUsdHint() {
-        const raw = document.getElementById('wallet-service-amount')?.value || '';
-        const n = Number(String(raw).replace(',', '.').replace(/[^0-9.]/g,'')) || 0;
+        const n = parseWalletAmount(document.getElementById('wallet-service-amount')?.value);
         const el = document.getElementById('wallet-usd-hint');
-        if (el) el.textContent = `≈${n.toFixed(2)} $`;
+        const cfg = WALLET_PAYMENT_ASSETS[walletSelectedAsset];
+        if (!el || !cfg) return;
+        el.textContent = cfg.stableUsd ? `≈${n.toFixed(2)} $` : 'Курс в USD будет рассчитан бэкендом';
+    }
+
+    function walletAddressMarkup(cfg) {
+        return `
+            <div class="wallet-mock-address wallet-real-address">
+                <label>Адрес кошелька</label>
+                <div class="wallet-address-value">
+                    <span>${escHtml(cfg.address)}</span>
+                    <button type="button" class="wallet-copy-btn" aria-label="Скопировать адрес" onclick="copyWalletAddress('${cfg.address}')">⧉</button>
+                </div>
+            </div>`;
+    }
+
+    function walletPaymentQrMarkup(cfg) {
+        return `
+            <div class="wallet-qr-card">
+                <img class="wallet-payment-qr" src="${cfg.qr}" alt="QR-код ${escHtml(walletSelectedAsset)}">
+            </div>`;
+    }
+
+    function walletNetworkMarkup(cfg) {
+        return `
+            <div class="wallet-network-card">
+                <div class="wallet-token">${escHtml(cfg.symbol)}</div>
+                <div><small>Сеть</small><b>${escHtml(cfg.network)}</b></div>
+            </div>`;
+    }
+
+    async function copyWalletAddress(address) {
+        try {
+            if (navigator.clipboard?.writeText) {
+                await navigator.clipboard.writeText(address);
+            } else {
+                const ta = document.createElement('textarea');
+                ta.value = address;
+                ta.style.position = 'fixed';
+                ta.style.opacity = '0';
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                ta.remove();
+            }
+            if (tg?.HapticFeedback?.notificationOccurred) {
+                tg.HapticFeedback.notificationOccurred('success');
+            }
+        } catch (_) {}
     }
 
     function renderServicePaymentPlaceholder() {
-        const amountRaw = document.getElementById('wallet-service-amount')?.value || '';
-        const n = Number(String(amountRaw).replace(',', '.').replace(/[^0-9.]/g,'')) || 0;
-        if (n <= 0) { document.getElementById('wallet-service-amount')?.focus(); return; }
+        const n = parseWalletAmount(document.getElementById('wallet-service-amount')?.value);
+        if (n <= 0) {
+            document.getElementById('wallet-service-amount')?.focus();
+            return;
+        }
         const c = document.getElementById('wallet-sheet-content');
+        const cfg = WALLET_PAYMENT_ASSETS[walletSelectedAsset];
+        if (!c || !cfg) return;
+        const usdText = cfg.stableUsd ? `≈${n.toFixed(2)} $` : '—';
         c.innerHTML = `
             <h3>Пополнение баланса для услуг</h3>
-            <div class="wallet-placeholder-card"><strong>Пока-что тут ничего нет</strong><span>Адрес кошелька и QR-код появятся после подключения бэкенда.</span></div>
-            <div class="wallet-warning">Отправьте только ${escHtml(walletSelectedAsset)} через выбранную сеть. Любые другие активы будут потеряны.</div>
-            <div class="wallet-network-card"><div class="wallet-token">T</div><div><small>Сеть</small><b>${walletSelectedAsset === 'USDT TRC20' ? 'Tron' : escHtml(walletSelectedAsset)}</b></div></div>
-            <div class="wallet-mock-address"><label>Сумма</label><div>${escHtml(walletSelectedAsset)} ${n.toFixed(0)} · ≈${n.toFixed(2)} $</div></div>
-            <div class="wallet-mock-address"><label>Адрес кошелька</label><div>Пока-что тут ничего нет</div></div>
+            ${walletPaymentQrMarkup(cfg)}
+            <div class="wallet-warning">Отправьте только ${escHtml(walletSelectedAsset)} через сеть ${escHtml(cfg.network)}. Любые другие активы будут потеряны.</div>
+            ${walletNetworkMarkup(cfg)}
+            <div class="wallet-payment-amount-label">Сумма</div>
+            <div class="wallet-payment-amount-grid">
+                <div><span>${escHtml(walletSelectedAsset)}</span> ${escHtml(formatWalletAmount(n))}</div>
+                <div><span>USD</span> ${escHtml(usdText)}</div>
+            </div>
+            <div class="wallet-payment-note">Сумма должна совпадать с указанной до последней цифры. Любое отклонение может привести к потере средств.</div>
+            ${walletAddressMarkup(cfg)}
+            <div class="wallet-autocheck">ⓘ&nbsp;&nbsp;Автопроверка активна. После поступления средств статус изменится автоматически.</div>
             <button class="wallet-yellow-btn" type="button" onclick="closeWalletSheet()">Отменить платеж</button>`;
     }
 
     function renderGuaranteePlaceholder() {
         const c = document.getElementById('wallet-sheet-content');
+        const cfg = WALLET_PAYMENT_ASSETS[walletSelectedAsset];
+        if (!c || !cfg) return;
+        const minText = cfg.stableUsd
+            ? `Минимальная сумма пополнения: 300$ (~300 ${escHtml(walletSelectedAsset)})`
+            : 'Минимальная сумма пополнения: 300$';
         c.innerHTML = `
             <h3>Пополнение гарантийного депозита</h3>
-            <div class="wallet-placeholder-card"><strong>Пока-что тут ничего нет</strong><span>Адрес кошелька и QR-код появятся после подключения бэкенда.</span></div>
-            <div class="wallet-warning">Отправьте только ${escHtml(walletSelectedAsset)} через выбранную сеть. Любые другие активы будут потеряны.</div>
-            <div class="wallet-network-card"><div class="wallet-token">T</div><div><small>Сеть</small><b>${walletSelectedAsset === 'USDT TRC20' ? 'Tron' : escHtml(walletSelectedAsset)}</b></div></div>
-            <div class="wallet-mock-address"><label>Адрес кошелька</label><div>Пока-что тут ничего нет</div></div>
-            <div class="wallet-minimum">Минимальная сумма пополнения: 300$ (~300 USDT TRC20)</div>
+            ${walletPaymentQrMarkup(cfg)}
+            <div class="wallet-warning">Отправьте только ${escHtml(walletSelectedAsset)} через сеть ${escHtml(cfg.network)}. Любые другие активы будут потеряны.</div>
+            ${walletNetworkMarkup(cfg)}
+            ${walletAddressMarkup(cfg)}
+            <div class="wallet-minimum">${minText}</div>
             <button class="wallet-yellow-btn" type="button" onclick="closeWalletSheet()">Отменить</button>`;
     }
 
@@ -1674,6 +1785,7 @@ function renderServiceList(services) {
     window.selectWalletAsset = selectWalletAsset;
     window.continueWalletFlow = continueWalletFlow;
     window.updateWalletUsdHint = updateWalletUsdHint;
+    window.copyWalletAddress = copyWalletAddress;
     window.renderServicePaymentPlaceholder = renderServicePaymentPlaceholder;
     window.confirmGuaranteeWithdraw = confirmGuaranteeWithdraw;
 
