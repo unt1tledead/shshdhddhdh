@@ -429,6 +429,23 @@
             </div>
         </div>
 
+        <!-- ─── ADVERTISING PAGE ─── -->
+        <div id="page-ads" class="page ads-page">
+            <div class="ads-page-head">
+                <h2 class="ref-page-title">Реклама</h2>
+            </div>
+            <div class="ads-tabs" role="tablist">
+                <button id="ads-tab-buy" class="ads-tab active" type="button" onclick="switchAdsTab('buy', this)">Покупка рекламы</button>
+                <button id="ads-tab-history" class="ads-tab" type="button" onclick="switchAdsTab('history', this)">История заявок</button>
+            </div>
+            <div id="ads-purchase-pane" class="ads-pane active">
+                <div id="ad-wizard"></div>
+            </div>
+            <div id="ads-history-pane" class="ads-pane">
+                <div id="ads-history-list"></div>
+            </div>
+        </div>
+
         <!-- ─── CHAT PAGE ─── -->
         <div id="page-chat" class="page">
             <div id="chat-list-view" class="chat-view active">
@@ -1194,7 +1211,7 @@
                     <svg class="profile-sheet-menu-icon" viewBox="0 0 24 24" fill="none"><path d="m5 18 5.3-5.3M13.7 9.3 19 4M4 15l5 5M15 4l5 5M8.5 8.5 15.5 15.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="m5.8 4.8 2.8 2.8-3.2 3.2-2.8-2.8 3.2-3.2ZM18.2 13.2l2.8 2.8-3.2 3.2-2.8-2.8 3.2-3.2Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
                     <b>Арбитражи</b>
                 </button>
-                <button type="button" onclick="showPanelStub('Покупка рекламы')">
+                <button type="button" onclick="openAdsPage()">
                     <svg class="profile-sheet-menu-icon" viewBox="0 0 24 24" fill="none"><path d="M4.5 13.5 10 8l6 6-5.5 5.5L4.5 13.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="m12.8 5.2 2.4-2.4M16.5 7.5h3.4M10.5 3.5V1.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
                     <b>Покупка рекламы</b>
                 </button>

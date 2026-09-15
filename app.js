@@ -1,7 +1,7 @@
 /* global Telegram */
 'use strict';
 
-const APP_VERSION = '20260915-auth-arbitrations-v2';
+const APP_VERSION = '20260915-ads-arbitrations-v3';
 console.log(`[APP] app.js loaded, version ${APP_VERSION}`);
 window.APP_VERSION = APP_VERSION;
 
@@ -1575,14 +1575,19 @@ function openArbitrationsPage() {
     const main = document.querySelector('.app-main');
     if (main) main.scrollTop = 0;
     closeArbitrationDropdowns();
+    renderArbitrationStatusOptions();
     renderArbitrations();
 }
 
 function switchArbitrationTab(tab, btn) {
     _arbitrationTab = tab === 'closed' ? 'closed' : 'open';
+    _arbitrationStatus = 'all';
+    const statusLabel = document.getElementById('arb-status-label');
+    if (statusLabel) statusLabel.textContent = 'Все';
     document.querySelectorAll('#page-arbitrations .arb-segment .ref-seg-btn').forEach(el => el.classList.remove('active'));
     btn?.classList.add('active');
     closeArbitrationDropdowns();
+    renderArbitrationStatusOptions();
     renderArbitrations();
 }
 
@@ -3378,3 +3383,493 @@ window.updatePublicationCounter = updatePublicationCounter;
 window.validatePublicationDraft = validatePublicationDraft;
 
 if (typeof copyWalletValue === 'function') window.copyWalletValue = copyWalletValue;
+
+// ══════════════════════ CLOSED ARBITRATIONS + ADVERTISING FLOW ══════════════════════
+const ARBITRATION_OPEN_STATUSES = [
+    ['all', 'Все'],
+    ['appearance_timer', 'Ожидает запуска таймера явки'],
+    ['fee_payment', 'Ожидает оплату пошлины'],
+    ['appearance_running', 'Идёт таймер явки сторон'],
+    ['working', 'В работе'],
+    ['appeal_period', 'Идёт срок на апелляцию'],
+    ['appeal_fee', 'Апелляция ожидает оплату пошлины'],
+    ['appeal_arbiter', 'Ожидает назначения арбитра апелляции'],
+    ['appeal_working', 'Апелляция в работе'],
+];
+const ARBITRATION_CLOSED_STATUSES = [
+    ['all', 'Все'],
+    ['claimant', 'Закрыт в сторону истца'],
+    ['respondent', 'Закрыт в сторону ответчика'],
+    ['split', 'Закрыт разделением'],
+    ['cancelled', 'Отменён'],
+];
+
+function renderArbitrationStatusOptions() {
+    const menu = document.getElementById('arb-status-menu');
+    if (!menu) return;
+    const statuses = _arbitrationTab === 'closed' ? ARBITRATION_CLOSED_STATUSES : ARBITRATION_OPEN_STATUSES;
+    menu.innerHTML = statuses.map(([value, label]) => `
+        <button type="button" class="${_arbitrationStatus === value ? 'active' : ''}" data-arb-status="${escHtml(value)}"
+            onclick="selectArbitrationStatus('${String(value).replace(/'/g, "\\'")}','${String(label).replace(/'/g, "\\'")}')">${escHtml(label)}</button>`).join('');
+}
+window.renderArbitrationStatusOptions = renderArbitrationStatusOptions;
+
+const AD_HISTORY_KEY = 'gw_ad_requests';
+const AD_PRICE_BASE = {
+    'home-center': 300,
+    'home-sidebar': 150,
+    'catalog-center': 250,
+    'catalog-sidebar': 130,
+};
+const AD_PLACEMENTS = {
+    'home-center': 'Главная страница (центр)',
+    'home-sidebar': 'Главная страница (сайдбар)',
+    'catalog-center': 'Каталог (центр)',
+    'catalog-sidebar': 'Каталог (сайдбар)',
+};
+const AD_SECTIONS = [
+    'Не выбрано',
+    'Инструменты обналички',
+    'SIM,Телефония,Базы',
+    'Документы и верификации',
+    'Цифровые товары и услуги',
+    'Скуп-сервисы',
+    'Борьба с конкурентами',
+    'IT-услуги',
+    'Оффтоп и флуд',
+];
+const AD_DURATIONS = {
+    1: { discount: 0, label: '1 месяц' },
+    3: { discount: 0.08, label: '3 месяца' },
+    6: { discount: 0.10, label: '6 месяцев' },
+    12: { discount: 0.20, label: '12 месяцев' },
+};
+
+let _adTab = 'buy';
+let _adStep = 1;
+let _adError = '';
+let _adState = createAdState();
+
+function createAdState() {
+    return {
+        type: '',
+        placement: '',
+        section: 'Не выбрано',
+        publicationId: '',
+        months: 0,
+        webFile: null,
+        mobileFile: null,
+        webPreview: '',
+        mobilePreview: '',
+        destinationMode: 'url',
+        destinationUrl: '',
+        destinationPublicationId: '',
+        currency: '',
+        historyId: null,
+    };
+}
+
+function openAdsPage() {
+    closeProfileSheet();
+    if (typeof closeWalletSheet === 'function') closeWalletSheet();
+    if (typeof closeWalletPin === 'function') closeWalletPin();
+    document.querySelectorAll('.bottom-nav .nav-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+    document.getElementById('page-ads')?.classList.add('active');
+    switchAdsTab('buy', document.getElementById('ads-tab-buy'));
+    const main = document.querySelector('.app-main');
+    if (main) main.scrollTop = 0;
+}
+
+function switchAdsTab(tab, btn) {
+    _adTab = tab === 'history' ? 'history' : 'buy';
+    document.querySelectorAll('#page-ads .ads-tab').forEach(el => el.classList.remove('active'));
+    btn?.classList.add('active');
+    document.getElementById('ads-purchase-pane')?.classList.toggle('active', _adTab === 'buy');
+    document.getElementById('ads-history-pane')?.classList.toggle('active', _adTab === 'history');
+    if (_adTab === 'history') renderAdHistory();
+    else renderAdStep();
+}
+
+function adProgressMarkup(step = _adStep) {
+    return `<div class="ad-progress">${[1,2,3,4].map((n, i) => {
+        const done = n < step;
+        const active = n === step;
+        return `${i ? '<span class="ad-progress-line '+(done || active ? 'on' : '')+'"></span>' : ''}<span class="ad-progress-node ${done ? 'done' : ''} ${active ? 'active' : ''}">${done ? '✓' : n}</span>`;
+    }).join('')}</div>`;
+}
+
+function adSelectMarkup(id, value, placeholder, options, onchange) {
+    return `<div class="ad-select-wrap ${_adError && !value ? 'has-error' : ''}">
+        <select id="${id}" class="ad-select" onchange="${onchange}">
+            <option value="">${escHtml(placeholder)}</option>
+            ${options.map(([v,l]) => `<option value="${escHtml(v)}" ${String(v)===String(value)?'selected':''}>${escHtml(l)}</option>`).join('')}
+        </select>
+        <span class="ad-select-arrow">⌄</span>
+    </div>`;
+}
+
+function adPublications() {
+    try { return typeof getMockPublications === 'function' ? getMockPublications() : []; }
+    catch (_) { return []; }
+}
+
+function renderAdStep() {
+    const root = document.getElementById('ad-wizard');
+    if (!root) return;
+    if (_adStep === 1) root.innerHTML = renderAdStepOne();
+    if (_adStep === 2) root.innerHTML = renderAdStepTwo();
+    if (_adStep === 3) root.innerHTML = renderAdStepThree();
+    if (_adStep === 4) root.innerHTML = renderAdStepFour();
+}
+
+function renderAdStepOne() {
+    const pubs = adPublications();
+    const placementOptions = Object.entries(AD_PLACEMENTS);
+    const typeOptions = [['banner','Баннер'],['publication','Публикация']];
+    let extra = '';
+    if (_adState.type === 'banner') {
+        extra += `<label class="ad-field-label">Место размещения:</label>
+            ${adSelectMarkup('ad-placement', _adState.placement, 'Выберите место размещения', placementOptions, "setAdField('placement',this.value)")}`;
+        if (_adState.placement.startsWith('catalog-')) {
+            extra += `<label class="ad-field-label">Раздел*</label>
+                ${adSelectMarkup('ad-section', _adState.section === 'Не выбрано' ? '' : _adState.section, 'Не выбрано', AD_SECTIONS.slice(1).map(v=>[v,v]), "setAdField('section',this.value||'Не выбрано')")}
+                <p class="ad-help">*При выборе раздела/подраздела/категории/подкатегории баннер будет показан только в указанном месте. Если вы ничего не выбрали, баннер будет показан в любом случае.</p>`;
+        }
+    } else if (_adState.type === 'publication') {
+        extra += `<p class="ad-help ad-help-top">*Автоподнятие вашей публикации</p>
+            <label class="ad-field-label ad-field-label-normal">Выберите публикацию, которую вы хотите рекламировать</label>
+            ${adSelectMarkup('ad-publication', _adState.publicationId, 'Выберите публикацию', pubs.map(p=>[String(p.id),p.title || 'Без названия']), "setAdField('publicationId',this.value)")}
+            ${!pubs.length ? '<div class="ad-empty-select">Пусто</div>' : ''}`;
+    }
+    return `<section class="ad-card ad-step-card">
+        <h3>Заяви о себе всего за 4 простых шага</h3>
+        ${adProgressMarkup()}
+        <label class="ad-field-label">Тип рекламы?</label>
+        ${adSelectMarkup('ad-type', _adState.type, 'Выберите тип рекламы', typeOptions, "selectAdType(this.value)")}
+        ${extra}
+        ${_adError ? `<div class="ad-form-error">${escHtml(_adError)}</div>` : ''}
+        <button type="button" class="ad-yellow-btn" onclick="adNext()">Далее</button>
+        <button type="button" class="ad-gray-btn" ${canPreviewAd()?'':'disabled'} onclick="openAdPreview()">Предпросмотр</button>
+    </section>`;
+}
+
+function renderAdStepTwo() {
+    const base = getAdBasePrice();
+    return `<section class="ad-card ad-step-card">
+        ${adProgressMarkup()}
+        <h3 class="ad-step-title">Размещение доступно с:</h3>
+        <div class="ad-duration-list">
+            ${Object.entries(AD_DURATIONS).map(([m,cfg]) => {
+                const total = calculateAdTotal(Number(m), base);
+                return `<button type="button" class="ad-duration ${Number(_adState.months)===Number(m)?'active':''}" onclick="selectAdDuration(${m})">
+                    <span class="ad-radio"><i></i></span>
+                    <span class="ad-duration-label">${cfg.label}</span>
+                    <span class="ad-duration-price">${formatAdMoney(total)} $${cfg.discount?`<small>Ваша выгода ${Math.round(cfg.discount*100)}%</small>`:''}</span>
+                </button>`;
+            }).join('')}
+        </div>
+        ${_adError ? `<div class="ad-form-error">${escHtml(_adError)}</div>` : ''}
+        <button type="button" class="ad-yellow-btn" onclick="adNext()">Далее</button>
+        <button type="button" class="ad-gray-btn" ${canPreviewAd()?'':'disabled'} onclick="openAdPreview()">Предпросмотр</button>
+        <button type="button" class="ad-gray-btn" onclick="adBack()">Назад</button>
+    </section>`;
+}
+
+function renderAdStepThree() {
+    const pubs = adPublications();
+    return `<section class="ad-card ad-step-card">
+        ${adProgressMarkup()}
+        <div class="ad-upload-title-row"><h3>Загрузите баннер для веб версии сайта</h3><b>295x350</b></div>
+        <p class="ad-help">Файл не должен превышать 10 МБ, допустимые форматы: jpeg, png, webp, jpg, gif, mp4</p>
+        ${adUploadMarkup('web','webFile','295x350')}
+        <div class="ad-upload-title-row"><h3>Загрузите баннер для мобильной версии сайта</h3><b>930x260</b></div>
+        <p class="ad-help">Файл не должен превышать 10 МБ, допустимые форматы: jpeg, png, webp, jpg, gif, mp4</p>
+        ${adUploadMarkup('mobile','mobileFile','930x260')}
+        <div class="ad-radio-row" onclick="setAdDestinationMode('url')"><span class="ad-radio ${_adState.destinationMode==='url'?'selected':''}"><i></i></span><span>Укажите путь для перехода при клике на рекламу</span></div>
+        <div class="ad-radio-row" onclick="setAdDestinationMode('publication')"><span class="ad-radio ${_adState.destinationMode==='publication'?'selected':''}"><i></i></span><span>Или выберите свою публикацию</span></div>
+        ${_adState.destinationMode === 'url' ? `
+            <label class="ad-field-label">Укажите путь для перехода при клике на рекламу</label>
+            <input class="ad-input" id="ad-destination-url" type="url" value="${escHtml(_adState.destinationUrl)}" placeholder="https://mywebsite.com" oninput="_adState.destinationUrl=this.value;_adError=''">
+            <div class="ad-input-hint">Ссылка на сайт, куда ведет реклама</div>` : `
+            <label class="ad-field-label">Выберите свою публикацию</label>
+            ${adSelectMarkup('ad-destination-publication', _adState.destinationPublicationId, 'Выберите публикацию', pubs.map(p=>[String(p.id),p.title||'Без названия']), "setAdField('destinationPublicationId',this.value)")}
+            ${!pubs.length ? '<div class="ad-empty-select">Пусто</div>' : ''}`}
+        ${_adError ? `<div class="ad-form-error">${escHtml(_adError)}</div>` : ''}
+        <button type="button" class="ad-yellow-btn" onclick="adNext()">Далее</button>
+        <button type="button" class="ad-gray-btn" ${canPreviewAd()?'':'disabled'} onclick="openAdPreview()">Предпросмотр</button>
+        <button type="button" class="ad-gray-btn" onclick="adBack()">Назад</button>
+    </section>`;
+}
+
+function adUploadMarkup(kind, field, dims) {
+    const file = _adState[field];
+    const preview = _adState[kind+'Preview'];
+    const isVideo = file && /^video\//.test(file.type || '');
+    return `<label class="ad-upload-box ${file?'filled':''}">
+        <input type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4" onchange="handleAdFile('${kind}',this.files?.[0])">
+        ${preview && !isVideo ? `<img src="${preview}" alt="Предпросмотр ${kind}">` : ''}
+        <span class="ad-upload-icon">↥</span>
+        <strong>${file ? escHtml(file.name) : 'Перетащите файлы или кликните для загрузки'}</strong>
+        <small>${file ? dims : ''}</small>
+    </label>`;
+}
+
+function renderAdStepFour() {
+    const total = getAdTotal();
+    const start = new Date().toLocaleDateString('ru-RU');
+    const currencyOpts = [['USDT TRC20','USDT TRC20'],['TRX','TRX'],['ETH','ETH']];
+    return `<section class="ad-card ad-step-card">
+        ${adProgressMarkup()}
+        <h3 class="ad-preview-title">Посмотрите как баннер будет выглядеть на сайте</h3>
+        <p class="ad-help">Убедитесь, что все требования соблюдены и ваша реклама выглядит так как это запланировано</p>
+        <div class="ad-summary-line"><b>Размещение с:</b><strong>${start}</strong></div>
+        <label class="ad-field-label">Выберите валюту оплаты</label>
+        ${adSelectMarkup('ad-currency', _adState.currency, 'Выберите валюту оплаты', currencyOpts, "setAdField('currency',this.value)")}
+        <div class="ad-summary-card"><span>Срок размещения</span><b>${escHtml(AD_DURATIONS[_adState.months]?.label || '')}</b></div>
+        <div class="ad-summary-card ad-total-card"><span>Всего к оплате:</span><b>${formatAdMoney(total)} $</b><span>Ваш баланс:</span><b>${formatAdMoney(Number(PROFILE_MOCK.serviceBalance || 0))}</b></div>
+        ${_adError ? `<div class="ad-form-error">${escHtml(_adError)}</div>` : ''}
+        <button type="button" class="ad-yellow-btn" onclick="finishAdPurchase()">Завершить</button>
+        <button type="button" class="ad-gray-btn" onclick="openAdPreview()">Предпросмотр</button>
+        <button type="button" class="ad-gray-btn" onclick="adBack()">Назад</button>
+    </section>`;
+}
+
+function selectAdType(type) {
+    _adState.type = type;
+    _adState.placement = '';
+    _adState.publicationId = '';
+    _adState.months = 0;
+    _adError = '';
+    renderAdStep();
+}
+function setAdField(field, value) {
+    _adState[field] = value;
+    _adError = '';
+    if (field === 'placement') _adState.months = 0;
+    renderAdStep();
+}
+function selectAdDuration(months) {
+    _adState.months = Number(months);
+    _adError = '';
+    renderAdStep();
+}
+function setAdDestinationMode(mode) {
+    _adState.destinationMode = mode === 'publication' ? 'publication' : 'url';
+    _adError = '';
+    renderAdStep();
+}
+function getAdBasePrice() {
+    if (_adState.type === 'publication') return 0;
+    return AD_PRICE_BASE[_adState.placement] || 0;
+}
+function calculateAdTotal(months, base = getAdBasePrice()) {
+    const cfg = AD_DURATIONS[months];
+    if (!cfg || !base) return 0;
+    return Number((base * months * (1 - cfg.discount)).toFixed(2));
+}
+function getAdTotal() { return calculateAdTotal(Number(_adState.months)); }
+function formatAdMoney(n) { return Number(n || 0).toLocaleString('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+
+function adNext() {
+    _adError = '';
+    if (_adStep === 1) {
+        if (!_adState.type) _adError = 'Выберите тип рекламы';
+        else if (_adState.type === 'banner' && !_adState.placement) _adError = 'Выберите место размещения';
+        else if (_adState.type === 'publication' && !_adState.publicationId) _adError = 'Выберите публикацию';
+        else if (_adState.type === 'publication') _adError = 'Тариф для рекламы публикации пока не настроен';
+    } else if (_adStep === 2) {
+        if (!_adState.months) _adError = 'Выберите срок размещения';
+    } else if (_adStep === 3) {
+        if (_adState.type === 'banner' && (!_adState.webFile || !_adState.mobileFile)) _adError = 'Загрузите оба баннера';
+        else if (_adState.destinationMode === 'url' && !isValidAdUrl(_adState.destinationUrl)) _adError = 'Укажите корректную ссылку http:// или https://';
+        else if (_adState.destinationMode === 'publication' && !_adState.destinationPublicationId) _adError = 'Выберите публикацию для перехода';
+    }
+    if (_adError) { renderAdStep(); return; }
+    _adStep = Math.min(4, _adStep + 1);
+    renderAdStep();
+    document.querySelector('.app-main')?.scrollTo({top:0,behavior:'smooth'});
+}
+function adBack() {
+    _adError = '';
+    _adStep = Math.max(1, _adStep - 1);
+    renderAdStep();
+    document.querySelector('.app-main')?.scrollTo({top:0,behavior:'smooth'});
+}
+function isValidAdUrl(value) {
+    try { const u = new URL(String(value || '').trim()); return u.protocol === 'http:' || u.protocol === 'https:'; }
+    catch (_) { return false; }
+}
+
+async function handleAdFile(kind, file) {
+    if (!file) return;
+    _adError = '';
+    const okTypes = ['image/jpeg','image/png','image/webp','image/gif','video/mp4'];
+    if (!okTypes.includes(file.type) || file.size > 10 * 1024 * 1024) {
+        _adError = file.size > 10 * 1024 * 1024 ? 'Файл больше 10 МБ' : 'Недопустимый формат файла';
+        renderAdStep(); return;
+    }
+    const expected = kind === 'web' ? [295,350] : [930,260];
+    if (file.type !== 'video/mp4') {
+        const dims = await getImageDimensions(file).catch(()=>null);
+        if (!dims || dims[0] !== expected[0] || dims[1] !== expected[1]) {
+            _adError = `Неверный размер: нужен ${expected[0]}x${expected[1]} px`;
+            renderAdStep(); return;
+        }
+    }
+    const field = kind === 'web' ? 'webFile' : 'mobileFile';
+    const previewField = kind + 'Preview';
+    if (_adState[previewField]) URL.revokeObjectURL(_adState[previewField]);
+    _adState[field] = file;
+    _adState[previewField] = URL.createObjectURL(file);
+    renderAdStep();
+}
+function getImageDimensions(file) {
+    return new Promise((resolve,reject)=>{
+        const url = URL.createObjectURL(file); const img = new Image();
+        img.onload=()=>{ const out=[img.naturalWidth,img.naturalHeight]; URL.revokeObjectURL(url); resolve(out); };
+        img.onerror=()=>{ URL.revokeObjectURL(url); reject(new Error('image')); };
+        img.src=url;
+    });
+}
+function canPreviewAd() { return Boolean(_adState.webPreview || _adState.mobilePreview); }
+
+function openAdPreview() {
+    const overlay = document.getElementById('ad-preview-overlay') || createAdPreviewOverlay();
+    const body = overlay.querySelector('.ad-preview-body');
+    const total = getAdTotal();
+    body.innerHTML = `<div class="ad-preview-grid">
+        ${_adState.webPreview ? `<div><small>Веб 295x350</small><img src="${_adState.webPreview}"></div>` : ''}
+        ${_adState.mobilePreview ? `<div><small>Мобильный 930x260</small><img src="${_adState.mobilePreview}"></div>` : ''}
+    </div><div class="ad-preview-meta"><b>${escHtml(AD_PLACEMENTS[_adState.placement] || 'Публикация')}</b><span>${escHtml(AD_DURATIONS[_adState.months]?.label || '')}</span><strong>${formatAdMoney(total)} $</strong></div>`;
+    overlay.classList.remove('hidden');
+}
+function createAdPreviewOverlay() {
+    const el=document.createElement('div'); el.id='ad-preview-overlay'; el.className='ad-preview-overlay hidden';
+    el.innerHTML='<div class="ad-preview-modal"><button class="ad-preview-close" onclick="closeAdPreview()">×</button><h3>Предпросмотр рекламы</h3><div class="ad-preview-body"></div></div>';
+    el.addEventListener('click',e=>{ if(e.target===el) closeAdPreview(); }); document.body.appendChild(el); return el;
+}
+function closeAdPreview(){ document.getElementById('ad-preview-overlay')?.classList.add('hidden'); }
+
+function loadAdHistory() {
+    try { return JSON.parse(localStorage.getItem(AD_HISTORY_KEY) || '[]'); } catch (_) { return []; }
+}
+function saveAdHistory(items) { localStorage.setItem(AD_HISTORY_KEY, JSON.stringify(items)); }
+function upsertAdHistory(record) {
+    const items=loadAdHistory(); const i=items.findIndex(x=>x.id===record.id);
+    if(i>=0) items[i]={...items[i],...record}; else items.unshift(record);
+    saveAdHistory(items.slice(0,50));
+}
+function renderAdHistory() {
+    const root=document.getElementById('ads-history-list'); if(!root) return;
+    const items=loadAdHistory();
+    if(!items.length){ root.innerHTML='<div class="ad-history-empty"><b>Здесь пока ничего нет</b><span>История заявок на рекламу появится здесь</span></div>'; return; }
+    root.innerHTML=items.map(x=>`<article class="ad-history-item"><div><b>${escHtml(x.typeLabel)}</b><span>${escHtml(x.placementLabel)}</span></div><div class="ad-history-side"><strong>${formatAdMoney(x.total)} $</strong><span>${escHtml(x.status)}</span></div><small>${escHtml(x.dateLabel)} · ${escHtml(x.currency || '—')}</small></article>`).join('');
+}
+
+async function finishAdPurchase() {
+    _adError = '';
+    if (!_adState.currency) { _adError = 'Выберите валюту оплаты'; renderAdStep(); return; }
+    const total=getAdTotal(); if(!total){ _adError='Не удалось рассчитать стоимость'; renderAdStep(); return; }
+    const id=_adState.historyId || ('ad-'+Date.now()); _adState.historyId=id;
+    const record={
+        id,
+        type:_adState.type,
+        typeLabel:_adState.type==='publication'?'Публикация':'Баннер',
+        placementLabel:_adState.type==='publication'?'Автоподнятие публикации':(AD_PLACEMENTS[_adState.placement]||''),
+        months:_adState.months,
+        total,
+        currency:_adState.currency,
+        status:'Ожидает оплаты',
+        dateLabel:new Date().toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}),
+    };
+    upsertAdHistory(record);
+    await openAdPayment(record);
+}
+
+async function resolveAdWallet(asset) {
+    if (WALLET_PAYMENT_ASSETS?.[asset]?.address) return { ...WALLET_PAYMENT_ASSETS[asset], source:'static' };
+    let wallets = Array.isArray(_currentWallets) ? _currentWallets : [];
+    if (!wallets.length) {
+        try { const data=await apiGet('/api/wallets'); if(Array.isArray(data)){ wallets=data; _currentWallets=data; } } catch (_) {}
+    }
+    const w=wallets.find(x=>String(x.id||x.symbol||'').toUpperCase()===String(asset).toUpperCase());
+    if(!w?.address) return null;
+    return {
+        address:w.address,
+        qr:w.qr ? `/api/assets/qr/${w.qr}` : '',
+        network:w.network || (asset==='TRX'?'Tron':asset),
+        icon:w.icon || '',
+        stableUsd:asset==='USDT TRC20',
+        source:'api',
+    };
+}
+async function resolveAdRate(asset) {
+    if (asset === 'USDT TRC20') return 1;
+    try {
+        const rates=await apiGet('/api/rates');
+        const key=asset==='USDT TRC20'?'USDT':asset;
+        const r=Number(rates?.[key]); return r>0?r:null;
+    } catch (_) { return null; }
+}
+function adNetworkMarkup(cfg, asset) {
+    const icon=cfg.icon ? `<img src="${escHtml(cfg.icon)}" alt="">` : `<span class="ad-token-fallback">${escHtml(asset.slice(0,1))}</span>`;
+    return `<div class="wallet-network-card"><div class="wallet-token">${icon}</div><div><small>Сеть</small><b>${escHtml(cfg.network||asset)}</b></div></div>`;
+}
+async function openAdPayment(record) {
+    const asset=record.currency; const cfg=await resolveAdWallet(asset);
+    if(!cfg){
+        _adError=`Для ${asset} реквизиты пока не настроены. Выберите другую валюту или добавьте кошелёк на бэкенде.`;
+        renderAdStep(); return;
+    }
+    const rate=await resolveAdRate(asset);
+    if(!rate){
+        _adError=`Не удалось получить актуальный курс ${asset}. Платёж не создан, чтобы не показывать неверную сумму.`;
+        renderAdStep(); return;
+    }
+    const coinAmount=Number((record.total/rate).toFixed(asset==='USDT TRC20'?2:8));
+    const c=document.getElementById('wallet-sheet-content'); if(!c) return;
+    walletSheetMode='ad'; walletSelectedAsset=asset;
+    const qr=cfg.qr ? `<div class="wallet-qr-card"><img class="wallet-payment-qr" src="${escHtml(cfg.qr)}" alt="QR-код ${escHtml(asset)}"></div>` : '';
+    c.innerHTML=`<h3>Оплата рекламы</h3>
+        ${qr}
+        <div class="wallet-warning">Отправьте только ${escHtml(asset)} через сеть ${escHtml(cfg.network||asset)}. Любые другие активы будут потеряны.</div>
+        ${adNetworkMarkup(cfg,asset)}
+        <div class="wallet-payment-amount-label">Сумма</div>
+        <div class="wallet-payment-amount-grid">
+            <div class="wallet-copy-field"><div><span>${escHtml(asset)}</span> ${escHtml(formatWalletAmount(coinAmount))}</div><button type="button" class="wallet-copy-btn wallet-amount-copy-btn" onclick="copyWalletValue('${formatWalletAmount(coinAmount)}')"><img src="assets/ui/copy.png" class="wallet-copy-img" alt=""></button></div>
+            <div class="wallet-copy-field"><div><span>USD</span> ≈${formatAdMoney(record.total)} $</div></div>
+        </div>
+        <div class="wallet-payment-note">Сумма должна совпадать с указанной до последней цифры. Любое отклонение может привести к потере средств.</div>
+        ${walletAddressMarkup(cfg)}
+        <div class="wallet-address-validity">Адрес кошелька действителен еще: <b id="wallet-address-timer">60:00</b></div>
+        <div class="wallet-autocheck">ⓘ&nbsp;&nbsp;Автопроверка активна. После поступления средств статус изменится автоматически.</div>
+        <button class="wallet-yellow-btn" type="button" onclick="cancelAdPayment()">Отменить платеж</button>`;
+    document.getElementById('wallet-sheet-overlay')?.classList.remove('hidden');
+    startWalletAddressTimer(3600);
+}
+function cancelAdPayment(){
+    if(_adState.historyId){
+        const items=loadAdHistory(); const rec=items.find(x=>x.id===_adState.historyId); if(rec) upsertAdHistory({...rec,status:'Платёж отменён'});
+    }
+    closeWalletSheet();
+}
+function resetAdFlow(){
+    ['webPreview','mobilePreview'].forEach(k=>{ if(_adState[k]) try{URL.revokeObjectURL(_adState[k]);}catch(_){} });
+    _adState=createAdState(); _adStep=1; _adError=''; renderAdStep();
+}
+
+window.openAdsPage=openAdsPage;
+window.switchAdsTab=switchAdsTab;
+window.selectAdType=selectAdType;
+window.setAdField=setAdField;
+window.selectAdDuration=selectAdDuration;
+window.setAdDestinationMode=setAdDestinationMode;
+window.handleAdFile=handleAdFile;
+window.adNext=adNext;
+window.adBack=adBack;
+window.openAdPreview=openAdPreview;
+window.closeAdPreview=closeAdPreview;
+window.finishAdPurchase=finishAdPurchase;
+window.cancelAdPayment=cancelAdPayment;
+window.resetAdFlow=resetAdFlow;
