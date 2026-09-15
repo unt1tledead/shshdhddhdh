@@ -13,7 +13,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/styles.css?v=20260915-panel-fix2">
 </head>
 <body>
 
@@ -1005,7 +1005,7 @@
                     <svg class="profile-sheet-menu-icon" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="7" r="3.2" stroke="currentColor" stroke-width="1.8"/><path d="M5.5 20c.3-4.5 2.7-6.8 6.5-6.8s6.2 2.3 6.5 6.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
                     <b>Мой профиль</b>
                 </button>
-                <button type="button">
+                <button type="button" onclick="closeProfileSheet(); openDepositMenu()">
                     <svg class="profile-sheet-menu-icon" viewBox="0 0 24 24" fill="none"><path d="M4 7.2h13.5a2.5 2.5 0 0 1 2.5 2.5v7.1a2.2 2.2 0 0 1-2.2 2.2H4V7.2Z" stroke="currentColor" stroke-width="1.8"/><path d="M4 7.2V5.8A1.8 1.8 0 0 1 5.8 4h10.7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M16 11h4v4h-4a2 2 0 0 1 0-4Z" stroke="currentColor" stroke-width="1.8"/></svg>
                     <b>Кошелек</b><em>0.00 $</em><i>+</i>
                 </button>
@@ -1013,19 +1013,19 @@
                     <svg class="profile-sheet-menu-icon" viewBox="0 0 24 24" fill="none"><rect x="5" y="6" width="14" height="14" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M9 6V4.7C9 3.8 9.7 3 10.7 3h2.6c1 0 1.7.8 1.7 1.7V6M12 9v8M14.3 11.1c0-1-1-1.6-2.3-1.6s-2.3.6-2.3 1.6c0 2.4 4.6 1.2 4.6 3.6 0 1-1 1.8-2.3 1.8s-2.3-.8-2.3-1.8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
                     <b>Мои сделки</b>
                 </button>
-                <button type="button">
+                <button type="button" onclick="showPanelStub('Арбитражи')">
                     <svg class="profile-sheet-menu-icon" viewBox="0 0 24 24" fill="none"><path d="m5 18 5.3-5.3M13.7 9.3 19 4M4 15l5 5M15 4l5 5M8.5 8.5 15.5 15.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="m5.8 4.8 2.8 2.8-3.2 3.2-2.8-2.8 3.2-3.2ZM18.2 13.2l2.8 2.8-3.2 3.2-2.8-2.8 3.2-3.2Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
                     <b>Арбитражи</b>
                 </button>
-                <button type="button">
+                <button type="button" onclick="showPanelStub('Покупка рекламы')">
                     <svg class="profile-sheet-menu-icon" viewBox="0 0 24 24" fill="none"><path d="M4.5 13.5 10 8l6 6-5.5 5.5L4.5 13.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="m12.8 5.2 2.4-2.4M16.5 7.5h3.4M10.5 3.5V1.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
                     <b>Покупка рекламы</b>
                 </button>
-                <button type="button">
+                <button type="button" onclick="closeProfileSheet(); openSettingsPage()">
                     <svg class="profile-sheet-menu-icon" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8"/><path d="M12 3.4v2M12 18.6v2M20.6 12h-2M5.4 12h-2M18.1 5.9l-1.4 1.4M7.3 16.7l-1.4 1.4M18.1 18.1l-1.4-1.4M7.3 7.3 5.9 5.9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
                     <b>Настройки</b>
                 </button>
-                <button type="button" class="profile-sheet-logout">
+                <button type="button" class="profile-sheet-logout" onclick="showLogoutStub()">
                     <svg class="profile-sheet-menu-icon" viewBox="0 0 24 24" fill="none"><path d="M10 4H5.5A1.5 1.5 0 0 0 4 5.5v13A1.5 1.5 0 0 0 5.5 20H10" stroke="currentColor" stroke-width="1.8"/><path d="M13 8l4 4-4 4M8 12h9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
                     <b>Выйти из аккаунта</b>
                 </button>
@@ -1035,23 +1035,23 @@
 
     <!-- Bottom Navigation -->
     <nav class="bottom-nav ref-bottom-nav">
-        <button class="nav-btn active" onclick="navTo('search',this)">
+        <button class="nav-btn active" data-nav-page="search">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3V10.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
             <span>Главная</span>
         </button>
-        <button class="nav-btn" onclick="navTo('help',this)">
+        <button class="nav-btn" data-nav-page="help">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.8"/><rect x="15" y="3" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.8"/><rect x="3" y="15" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.8"/><rect x="15" y="15" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.8"/></svg>
             <span>Каталог</span>
         </button>
-        <button class="nav-btn nav-deals" onclick="navTo('deals',this)">
+        <button class="nav-btn nav-deals" data-nav-page="deals">
             <svg width="27" height="27" viewBox="0 0 24 24" fill="none"><rect x="5" y="6" width="14" height="14" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M9 6V4.7C9 3.8 9.7 3 10.7 3h2.6c1 0 1.7.8 1.7 1.7V6M12 9v8M14.3 11.1c0-1-1-1.6-2.3-1.6s-2.3.6-2.3 1.6c0 2.4 4.6 1.2 4.6 3.6 0 1-1 1.8-2.3 1.8s-2.3-.8-2.3-1.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
             <span>Сделки</span>
         </button>
-        <button class="nav-btn" onclick="navTo('chat',this)">
+        <button class="nav-btn" data-nav-page="chat">
             <span class="nav-chat-icon"><svg width="25" height="25" viewBox="0 0 24 24" fill="none"><path d="M4 5.8C4 4.8 4.8 4 5.8 4h12.4C19.2 4 20 4.8 20 5.8v8.4c0 1-.8 1.8-1.8 1.8H11l-4.7 3.6V16H5.8c-1 0-1.8-.8-1.8-1.8V5.8Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg><i></i></span>
             <span>Чат</span>
         </button>
-        <button class="nav-btn nav-profile-trigger" onclick="toggleProfileSheet()" aria-label="Открыть профиль">
+        <button class="nav-btn nav-profile-trigger" data-nav-profile="1" aria-label="Открыть профиль">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="7.2" r="3.2" stroke="currentColor" stroke-width="1.8"/><path d="M5.5 20c.3-4.5 2.7-6.8 6.5-6.8s6.2 2.3 6.5 6.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
             <span>Профиль</span>
         </button>
@@ -1060,6 +1060,6 @@
 </div>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script defer src="app.js?v=20260915-wallet-navfix1"></script>
+<script defer src="app.js?v=20260915-panel-fix2"></script>
 </body>
 </html>

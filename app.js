@@ -1287,6 +1287,41 @@ window.openProfileSheet = openProfileSheet;
 window.closeProfileSheet = closeProfileSheet;
 window.toggleProfileSheet = toggleProfileSheet;
 
+function showPanelStub(title) {
+    closeProfileSheet();
+    const message = `${title}: пока-что тут ничего нет`;
+    if (tg?.showAlert) tg.showAlert(message);
+    else alert(message);
+}
+
+function showLogoutStub() {
+    closeProfileSheet();
+    const message = 'Выход из аккаунта будет подключён вместе с бэкендом.';
+    if (tg?.showAlert) tg.showAlert(message);
+    else alert(message);
+}
+
+function bindBottomNavigation() {
+    document.querySelectorAll('.bottom-nav .nav-btn').forEach((btn) => {
+        if (btn.dataset.navBound === '1') return;
+        btn.dataset.navBound = '1';
+        btn.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            if (btn.dataset.navProfile === '1') {
+                toggleProfileSheet();
+                return;
+            }
+            const pageId = btn.dataset.navPage;
+            if (pageId) navTo(pageId, btn);
+        }, { passive: false });
+    });
+}
+
+document.addEventListener('DOMContentLoaded', bindBottomNavigation);
+window.showPanelStub = showPanelStub;
+window.showLogoutStub = showLogoutStub;
+
 // ── Search Tabs ───────────────────────────────────────────────────────────
 let currentTab = 'users';
 
@@ -1628,6 +1663,21 @@ function renderServiceList(services) {
     // Compatibility with older handlers.
     function openDepositIn(){ openServiceTopup(); }
     function openDepositOut(){ openGuaranteeWithdraw(); }
+
+    window.openDepositMenu = openDepositMenu;
+    window.openServiceTopup = openServiceTopup;
+    window.openGuaranteeTopup = openGuaranteeTopup;
+    window.openGuaranteeWithdraw = openGuaranteeWithdraw;
+    window.walletOverlayClick = walletOverlayClick;
+    window.walletPinOverlayClick = walletPinOverlayClick;
+    window.closeWalletSheet = closeWalletSheet;
+    window.closeWalletPin = closeWalletPin;
+    window.toggleWalletAssetList = toggleWalletAssetList;
+    window.selectWalletAsset = selectWalletAsset;
+    window.continueWalletFlow = continueWalletFlow;
+    window.updateWalletUsdHint = updateWalletUsdHint;
+    window.renderServicePaymentPlaceholder = renderServicePaymentPlaceholder;
+    window.confirmGuaranteeWithdraw = confirmGuaranteeWithdraw;
 
 // ── User tap ──────────────────────────────────────────────────────────────
 function openUser(id) {
