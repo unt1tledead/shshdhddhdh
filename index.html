@@ -374,6 +374,61 @@
             </div>
         </div>
 
+        <!-- ─── ARBITRATIONS PAGE ─── -->
+        <div id="page-arbitrations" class="page arbitration-page">
+            <div class="ref-page-head">
+                <h2 class="ref-page-title">Арбитражи</h2>
+            </div>
+
+            <div class="ref-segment arb-segment">
+                <button id="arb-tab-open" class="ref-seg-btn active" type="button" onclick="switchArbitrationTab('open', this)">Открытые</button>
+                <button id="arb-tab-closed" class="ref-seg-btn" type="button" onclick="switchArbitrationTab('closed', this)">Закрытые</button>
+            </div>
+
+            <div class="arb-control-grid">
+                <div class="arb-control-box">
+                    <span class="arb-control-label">Статус</span>
+                    <button id="arb-status-btn" class="arb-select-btn" type="button" onclick="event.stopPropagation(); toggleArbitrationDropdown('status')">
+                        <b id="arb-status-label">Все</b>
+                        <svg id="arb-status-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+                    </button>
+                    <div id="arb-status-menu" class="arb-dropdown arb-status-dropdown hidden" onclick="event.stopPropagation()">
+                        <button type="button" class="active" data-arb-status="all" onclick="selectArbitrationStatus('all','Все')">Все</button>
+                        <button type="button" data-arb-status="appearance_timer" onclick="selectArbitrationStatus('appearance_timer','Ожидает запуска таймера явки')">Ожидает запуска таймера явки</button>
+                        <button type="button" data-arb-status="fee_payment" onclick="selectArbitrationStatus('fee_payment','Ожидает оплату пошлины')">Ожидает оплату пошлины</button>
+                        <button type="button" data-arb-status="appearance_running" onclick="selectArbitrationStatus('appearance_running','Идёт таймер явки сторон')">Идёт таймер явки сторон</button>
+                        <button type="button" data-arb-status="working" onclick="selectArbitrationStatus('working','В работе')">В работе</button>
+                        <button type="button" data-arb-status="appeal_period" onclick="selectArbitrationStatus('appeal_period','Идёт срок на апелляцию')">Идёт срок на апелляцию</button>
+                        <button type="button" data-arb-status="appeal_fee" onclick="selectArbitrationStatus('appeal_fee','Апелляция ожидает оплату пошлины')">Апелляция ожидает оплату пошлины</button>
+                        <button type="button" data-arb-status="appeal_arbiter" onclick="selectArbitrationStatus('appeal_arbiter','Ожидает назначения арбитра апелляции')">Ожидает назначения арбитра апелляции</button>
+                        <button type="button" data-arb-status="appeal_working" onclick="selectArbitrationStatus('appeal_working','Апелляция в работе')">Апелляция в работе</button>
+                    </div>
+                </div>
+
+                <div class="arb-control-box arb-sort-box">
+                    <span class="arb-control-label">Сортировка</span>
+                    <button id="arb-sort-btn" class="arb-select-btn" type="button" onclick="event.stopPropagation(); toggleArbitrationDropdown('sort')">
+                        <b id="arb-sort-label">По умолчанию</b>
+                        <svg id="arb-sort-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+                    </button>
+                    <div id="arb-sort-menu" class="arb-dropdown arb-sort-dropdown hidden" onclick="event.stopPropagation()">
+                        <button type="button" class="active" data-arb-sort="default" onclick="selectArbitrationSort('default','По умолчанию')">По умолчанию</button>
+                        <button type="button" data-arb-sort="newest" onclick="selectArbitrationSort('newest','Сначала новые')">Сначала новые</button>
+                        <button type="button" data-arb-sort="oldest" onclick="selectArbitrationSort('oldest','Сначала старые')">Сначала старые</button>
+                        <button type="button" data-arb-sort="amount_desc" onclick="selectArbitrationSort('amount_desc','По сумме (убывание)')">По сумме (убывание)</button>
+                        <button type="button" data-arb-sort="amount_asc" onclick="selectArbitrationSort('amount_asc','По сумме (возрастание)')">По сумме (возрастание)</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="arbitrations-list" class="arb-empty-card">
+                <div class="ref-empty-inner">
+                    <div class="ref-empty-title">Здесь пока ничего нет</div>
+                    <div id="arb-empty-sub" class="ref-empty-sub">У вас не было открытых арбитражей</div>
+                </div>
+            </div>
+        </div>
+
         <!-- ─── CHAT PAGE ─── -->
         <div id="page-chat" class="page">
             <div id="chat-list-view" class="chat-view active">
@@ -1135,7 +1190,7 @@
                     <svg class="profile-sheet-menu-icon" viewBox="0 0 24 24" fill="none"><rect x="5" y="6" width="14" height="14" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M9 6V4.7C9 3.8 9.7 3 10.7 3h2.6c1 0 1.7.8 1.7 1.7V6M12 9v8M14.3 11.1c0-1-1-1.6-2.3-1.6s-2.3.6-2.3 1.6c0 2.4 4.6 1.2 4.6 3.6 0 1-1 1.8-2.3 1.8s-2.3-.8-2.3-1.8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
                     <b>Мои сделки</b>
                 </button>
-                <button type="button" onclick="showPanelStub('Арбитражи')">
+                <button type="button" onclick="openArbitrationsPage()">
                     <svg class="profile-sheet-menu-icon" viewBox="0 0 24 24" fill="none"><path d="m5 18 5.3-5.3M13.7 9.3 19 4M4 15l5 5M15 4l5 5M8.5 8.5 15.5 15.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="m5.8 4.8 2.8 2.8-3.2 3.2-2.8-2.8 3.2-3.2ZM18.2 13.2l2.8 2.8-3.2 3.2-2.8-2.8 3.2-3.2Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
                     <b>Арбитражи</b>
                 </button>
@@ -1182,6 +1237,6 @@
 </div>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script defer src="app.js?v=20260915-auth-gate-v1"></script>
+<script defer src="app.js?v=20260915-auth-arbitrations-v2"></script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 /* global Telegram */
 'use strict';
 
-const APP_VERSION = '20260915-auth-gate-v1';
+const APP_VERSION = '20260915-auth-arbitrations-v2';
 console.log(`[APP] app.js loaded, version ${APP_VERSION}`);
 window.APP_VERSION = APP_VERSION;
 
@@ -27,6 +27,7 @@ const KEY_PROFILE_HIDDEN = 'gw_profile_hidden';
 const KEY_AUTH_ACCOUNT = 'gw_auth_account';
 const KEY_AUTH_SESSION = 'gw_auth_session';
 const KEY_AUTH_REMEMBER = 'gw_auth_remember';
+const KEY_AUTH_IDENTITY = 'gw_auth_identity';
 
 
 // ── Frontend profile adapter ─────────────────────────────────────────────
@@ -48,23 +49,18 @@ const PROFILE_MOCK = {
 };
 
 function getCurrentUserModel() {
+    // IMPORTANT: the forum nickname belongs to our own auth system.
+    // Never overwrite it with Telegram first_name / username. Telegram may
+    // still provide technical data such as id and avatar when Mini App is connected.
     const telegramUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
     const localAccount = getLocalAuthAccount();
-    const fallbackName = localAccount?.login || 'unt1tledead';
-    const fallback = {
-        id: 8626531033,
-        firstName: fallbackName,
-        lastName: '',
-        username: localAccount?.login || 'antonenkkovich',
-        photoUrl: null,
-    };
-    if (!telegramUser) return fallback;
+    const authLogin = getAuthIdentityLogin() || localAccount?.login || 'unt1tledead';
     return {
-        id: telegramUser.id ?? fallback.id,
-        firstName: telegramUser.first_name || telegramUser.username || fallback.firstName,
-        lastName: telegramUser.last_name || '',
-        username: telegramUser.username || fallback.username,
-        photoUrl: telegramUser.photo_url || null,
+        id: telegramUser?.id ?? 8626531033,
+        firstName: authLogin,
+        lastName: '',
+        username: authLogin,
+        photoUrl: telegramUser?.photo_url || null,
     };
 }
 
@@ -105,6 +101,7 @@ function boot() {
     const account = getLocalAuthAccount();
     const session = localStorage.getItem(KEY_AUTH_SESSION) === '1';
     const remember = localStorage.getItem(KEY_AUTH_REMEMBER) === '1';
+    if (account?.login && !getAuthIdentityLogin()) setAuthIdentity(account.login);
 
     // First launch must begin with registration/login, not the private app.
     if (!account) {
@@ -186,6 +183,21 @@ function showScreen(id) {
 function getLocalAuthAccount() {
     try { return JSON.parse(localStorage.getItem(KEY_AUTH_ACCOUNT) || 'null'); }
     catch (_) { return null; }
+}
+
+function setAuthIdentity(login) {
+    const value = String(login || '').trim();
+    if (!value) return;
+    localStorage.setItem(KEY_AUTH_IDENTITY, JSON.stringify({ login: value }));
+}
+
+function getAuthIdentityLogin() {
+    try {
+        const parsed = JSON.parse(localStorage.getItem(KEY_AUTH_IDENTITY) || 'null');
+        return String(parsed?.login || '').trim();
+    } catch (_) {
+        return '';
+    }
 }
 
 async function authHash(value) {
@@ -279,6 +291,7 @@ async function submitRegistration() {
 
     const passwordHash = await authHash(password);
     localStorage.setItem(KEY_AUTH_ACCOUNT, JSON.stringify({ login, passwordHash, createdAt: Date.now() }));
+    setAuthIdentity(login);
     localStorage.setItem(KEY_PIN, pin);
     localStorage.setItem(KEY_AUTH_SESSION, '1');
     localStorage.setItem(KEY_AUTH_REMEMBER, '1');
@@ -309,6 +322,7 @@ async function submitLogin() {
         return;
     }
 
+    setAuthIdentity(login);
     const remember = !!document.getElementById('login-remember')?.checked;
     localStorage.setItem(KEY_AUTH_SESSION, '1');
     if (remember) localStorage.setItem(KEY_AUTH_REMEMBER, '1');
@@ -375,6 +389,7 @@ function authToast(text) {
 function authLogoutToLogin() {
     localStorage.removeItem(KEY_AUTH_SESSION);
     localStorage.removeItem(KEY_AUTH_REMEMBER);
+    localStorage.removeItem(KEY_AUTH_IDENTITY);
     showScreen('auth-screen');
     showAuthView('login');
 }
@@ -1517,6 +1532,7 @@ function showLogoutStub() {
     closeProfileSheet();
     localStorage.removeItem(KEY_AUTH_SESSION);
     localStorage.removeItem(KEY_AUTH_REMEMBER);
+    localStorage.removeItem(KEY_AUTH_IDENTITY);
     pinBuffer = '';
     updateDots();
     showScreen('auth-screen');
@@ -1543,6 +1559,103 @@ function bindBottomNavigation() {
 document.addEventListener('DOMContentLoaded', bindBottomNavigation);
 window.showPanelStub = showPanelStub;
 window.showLogoutStub = showLogoutStub;
+
+// ── Arbitrations / appeals frontend UI ───────────────────────────────────
+let _arbitrationTab = 'open';
+let _arbitrationStatus = 'all';
+let _arbitrationSort = 'default';
+
+function openArbitrationsPage() {
+    closeProfileSheet();
+    if (typeof closeWalletSheet === 'function') closeWalletSheet();
+    if (typeof closeWalletPin === 'function') closeWalletPin();
+    document.querySelectorAll('.bottom-nav .nav-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+    document.getElementById('page-arbitrations')?.classList.add('active');
+    const main = document.querySelector('.app-main');
+    if (main) main.scrollTop = 0;
+    closeArbitrationDropdowns();
+    renderArbitrations();
+}
+
+function switchArbitrationTab(tab, btn) {
+    _arbitrationTab = tab === 'closed' ? 'closed' : 'open';
+    document.querySelectorAll('#page-arbitrations .arb-segment .ref-seg-btn').forEach(el => el.classList.remove('active'));
+    btn?.classList.add('active');
+    closeArbitrationDropdowns();
+    renderArbitrations();
+}
+
+function toggleArbitrationDropdown(kind) {
+    const target = kind === 'sort' ? 'sort' : 'status';
+    const menu = document.getElementById(`arb-${target}-menu`);
+    const btn = document.getElementById(`arb-${target}-btn`);
+    const arrow = document.getElementById(`arb-${target}-arrow`);
+    if (!menu) return;
+    const willOpen = menu.classList.contains('hidden');
+    closeArbitrationDropdowns();
+    if (willOpen) {
+        menu.classList.remove('hidden');
+        btn?.classList.add('open');
+        arrow?.classList.add('open');
+    }
+}
+
+function closeArbitrationDropdowns() {
+    ['status', 'sort'].forEach(kind => {
+        document.getElementById(`arb-${kind}-menu`)?.classList.add('hidden');
+        document.getElementById(`arb-${kind}-btn`)?.classList.remove('open');
+        document.getElementById(`arb-${kind}-arrow`)?.classList.remove('open');
+    });
+}
+
+function selectArbitrationStatus(value, label) {
+    _arbitrationStatus = value;
+    const text = document.getElementById('arb-status-label');
+    if (text) text.textContent = label;
+    document.querySelectorAll('#arb-status-menu button').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.arbStatus === value);
+    });
+    closeArbitrationDropdowns();
+    renderArbitrations();
+}
+
+function selectArbitrationSort(value, label) {
+    _arbitrationSort = value;
+    const text = document.getElementById('arb-sort-label');
+    if (text) text.textContent = label;
+    document.querySelectorAll('#arb-sort-menu button').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.arbSort === value);
+    });
+    closeArbitrationDropdowns();
+    renderArbitrations();
+}
+
+function renderArbitrations() {
+    const container = document.getElementById('arbitrations-list');
+    if (!container) return;
+
+    // Frontend-only state for now. When backend is connected, filter/sort the
+    // returned arbitration array by _arbitrationTab/_arbitrationStatus/_arbitrationSort.
+    const sub = _arbitrationTab === 'closed'
+        ? 'У вас не было закрытых арбитражей'
+        : 'У вас не было открытых арбитражей';
+    container.innerHTML = `
+        <div class="ref-empty-inner">
+            <div class="ref-empty-title">Здесь пока ничего нет</div>
+            <div id="arb-empty-sub" class="ref-empty-sub">${sub}</div>
+        </div>`;
+}
+
+document.addEventListener('click', (event) => {
+    if (!event.target.closest('.arb-control-box')) closeArbitrationDropdowns();
+});
+
+window.openArbitrationsPage = openArbitrationsPage;
+window.switchArbitrationTab = switchArbitrationTab;
+window.toggleArbitrationDropdown = toggleArbitrationDropdown;
+window.selectArbitrationStatus = selectArbitrationStatus;
+window.selectArbitrationSort = selectArbitrationSort;
 
 // ── Search Tabs ───────────────────────────────────────────────────────────
 let currentTab = 'users';
