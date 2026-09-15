@@ -3499,14 +3499,53 @@ function adProgressMarkup(step = _adStep) {
     }).join('')}</div>`;
 }
 
+let _adOpenSelect = null;
+
 function adSelectMarkup(id, value, placeholder, options, onchange) {
-    return `<div class="ad-select-wrap ${_adError && !value ? 'has-error' : ''}">
-        <select id="${id}" class="ad-select" onchange="${onchange}">
-            <option value="">${escHtml(placeholder)}</option>
-            ${options.map(([v,l]) => `<option value="${escHtml(v)}" ${String(v)===String(value)?'selected':''}>${escHtml(l)}</option>`).join('')}
-        </select>
-        <span class="ad-select-arrow">⌄</span>
+    const selected = options.find(([v]) => String(v) === String(value));
+    const label = selected ? selected[1] : placeholder;
+    const isOpen = _adOpenSelect === id;
+    return `<div class="ad-select-wrap ${_adError && !value ? 'has-error' : ''} ${isOpen ? 'open' : ''}" data-ad-select="${escHtml(id)}">
+        <button type="button" id="${id}" class="ad-select ${isOpen ? 'open' : ''}" onclick="toggleAdSelect('${id}', event)">
+            <span class="ad-select-value ${selected ? '' : 'placeholder'}">${escHtml(label)}</span>
+            <span class="ad-select-arrow ${isOpen ? 'open' : ''}">⌄</span>
+        </button>
+        <div class="ad-select-menu ${isOpen ? 'open' : ''}">
+            <button type="button" class="ad-select-option ${!value ? 'active' : ''}" onclick="chooseAdSelect('${id}', '', event)">${escHtml(placeholder)}</button>
+            ${options.map(([v,l]) => `<button type="button" class="ad-select-option ${String(v)===String(value)?'active':''}" onclick="chooseAdSelect('${id}', ${JSON.stringify(String(v)).replace(/"/g,'&quot;')}, event)">${escHtml(l)}</button>`).join('')}
+        </div>
     </div>`;
+}
+
+function toggleAdSelect(id, event) {
+    event?.stopPropagation?.();
+    _adOpenSelect = _adOpenSelect === id ? null : id;
+    renderAdStep();
+}
+
+function chooseAdSelect(id, value, event) {
+    event?.stopPropagation?.();
+    _adOpenSelect = null;
+    if (id === 'ad-type') selectAdType(value);
+    else if (id === 'ad-placement') setAdField('placement', value);
+    else if (id === 'ad-section') setAdField('section', value || 'Не выбрано');
+    else if (id === 'ad-publication') setAdField('publicationId', value);
+    else if (id === 'ad-destination-publication') setAdField('destinationPublicationId', value);
+    else if (id === 'ad-currency') setAdField('currency', value);
+    else setAdField(id.replace(/^ad-/, ''), value);
+}
+
+function closeAdSelects() {
+    if (!_adOpenSelect) return;
+    _adOpenSelect = null;
+    renderAdStep();
+}
+
+if (!window.__adSelectOutsideBound) {
+    window.__adSelectOutsideBound = true;
+    document.addEventListener('click', (event) => {
+        if (_adOpenSelect && !event.target.closest('[data-ad-select]')) closeAdSelects();
+    });
 }
 
 function adPublications() {
