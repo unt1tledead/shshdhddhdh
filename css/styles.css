@@ -2659,3 +2659,85 @@ body.publication-preview-open{overflow:hidden}
     .wallet-select-label,.wallet-sheet-sub { font-size: 16px; }
     .wallet-select,.wallet-select-option,.wallet-amount-input { font-size: 16px; }
 }
+
+
+/* Wallet real QR/address payment details — user-provided QR images are used as-is. */
+.wallet-qr-card{
+    background:#3a3a3a;
+    border-radius:16px;
+    padding:12px;
+    margin:6px 0 12px;
+    display:flex;
+    justify-content:center;
+}
+.wallet-payment-qr{
+    display:block;
+    width:min(100%,350px);
+    max-height:350px;
+    object-fit:contain;
+    border-radius:14px;
+    background:#fff;
+}
+.wallet-real-address .wallet-address-value{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    color:#fff;
+    overflow:hidden;
+}
+.wallet-address-value span{
+    min-width:0;
+    flex:1;
+    overflow-wrap:anywhere;
+    word-break:break-all;
+}
+.wallet-copy-btn{
+    flex:0 0 auto;
+    border:0;
+    background:transparent;
+    color:#949494;
+    font-size:24px;
+    line-height:1;
+    padding:2px 4px;
+}
+.wallet-payment-amount-label{
+    color:#929292;
+    font-size:14px;
+    margin:16px 0 7px;
+}
+.wallet-payment-amount-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:6px;
+}
+.wallet-payment-amount-grid>div{
+    background:#191919;
+    border-radius:10px;
+    padding:13px 12px;
+    color:#fff;
+    font-size:15px;
+    overflow-wrap:anywhere;
+}
+.wallet-payment-amount-grid span{
+    color:#929292;
+    margin-right:5px;
+}
+.wallet-payment-note{
+    color:#ddd;
+    font-size:13px;
+    line-height:1.35;
+    margin:9px 0 14px;
+}
+.wallet-autocheck{
+    margin-top:16px;
+    background:#373737;
+    border-radius:11px;
+    padding:12px;
+    color:#9a9a9a;
+    font-size:13px;
+    line-height:1.35;
+}
+@media(max-width:520px){
+    .wallet-payment-qr{width:min(100%,320px);max-height:320px}
+    .wallet-payment-amount-grid>div{font-size:14px}
+}
